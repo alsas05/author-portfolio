@@ -9,24 +9,29 @@ interface WritingDetailPageProps {
 }
 
 export async function generateMetadata({ params }: WritingDetailPageProps) {
-  const { slug } = await params;
-  const writing = await prisma.writing.findUnique({
-    where: { slug },
-  });
+  try {
+    const { slug } = await params;
+    const writing = await prisma.writing.findUnique({
+      where: { slug },
+    });
 
-  if (!writing) {
-    return { title: 'Piece Not Found | ALSA.S' };
-  }
+    if (!writing) {
+      return { title: 'Piece Not Found | ALSA.S' };
+    }
 
-  return {
-    title: `${writing.title} | Writings`,
-    description: writing.excerpt,
-    openGraph: {
-      title: `${writing.title} by Alsa.S`,
+    return {
+      title: `${writing.title} | Writings`,
       description: writing.excerpt,
-      type: 'article',
-    },
-  };
+      openGraph: {
+        title: `${writing.title} by Alsa.S`,
+        description: writing.excerpt,
+        type: 'article',
+      },
+    };
+  } catch (err) {
+    console.error('Error generating writing metadata:', err);
+    return { title: 'Writings | ALSA.S' };
+  }
 }
 
 export const revalidate = 60;
@@ -34,9 +39,14 @@ export const revalidate = 60;
 export default async function WritingDetailPage({ params }: WritingDetailPageProps) {
   const { slug } = await params;
 
-  const writing = await prisma.writing.findUnique({
-    where: { slug },
-  });
+  let writing = null;
+  try {
+    writing = await prisma.writing.findUnique({
+      where: { slug },
+    });
+  } catch (err) {
+    console.error('Error loading writing:', err);
+  }
 
   if (!writing) {
     notFound();
@@ -53,33 +63,44 @@ export default async function WritingDetailPage({ params }: WritingDetailPagePro
   }
 
   // Get previous and next pieces for navigation
-  const [prevWriting, nextWriting, relatedWritings] = await Promise.all([
-    prisma.writing.findFirst({
-      where: {
-        published: true,
-        publishedAt: { lt: writing.publishedAt },
-      },
-      orderBy: { publishedAt: 'desc' },
-      select: { title: true, slug: true },
-    }),
-    prisma.writing.findFirst({
-      where: {
-        published: true,
-        publishedAt: { gt: writing.publishedAt },
-      },
-      orderBy: { publishedAt: 'asc' },
-      select: { title: true, slug: true },
-    }),
-    prisma.writing.findMany({
-      where: {
-        published: true,
-        category: writing.category,
-        id: { not: writing.id },
-      },
-      take: 3,
-      select: { title: true, slug: true, excerpt: true, readingTime: true },
-    }),
-  ]);
+  let prevWriting = null;
+  let nextWriting = null;
+  let relatedWritings: any[] = [];
+
+  try {
+    const [pWriting, nWriting, rWritings] = await Promise.all([
+      prisma.writing.findFirst({
+        where: {
+          published: true,
+          publishedAt: { lt: writing.publishedAt },
+        },
+        orderBy: { publishedAt: 'desc' },
+        select: { title: true, slug: true },
+      }),
+      prisma.writing.findFirst({
+        where: {
+          published: true,
+          publishedAt: { gt: writing.publishedAt },
+        },
+        orderBy: { publishedAt: 'asc' },
+        select: { title: true, slug: true },
+      }),
+      prisma.writing.findMany({
+        where: {
+          published: true,
+          category: writing.category,
+          id: { not: writing.id },
+        },
+        take: 3,
+        select: { title: true, slug: true, excerpt: true, readingTime: true },
+      }),
+    ]);
+    prevWriting = pWriting;
+    nextWriting = nWriting;
+    relatedWritings = rWritings;
+  } catch (err) {
+    console.error('Error fetching adjacent writings:', err);
+  }
 
   return (
     <div className="py-12 sm:py-20 px-6 sm:px-8 max-w-7xl mx-auto w-full">

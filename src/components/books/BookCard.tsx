@@ -39,6 +39,7 @@ export default function BookCard({ book }: BookCardProps) {
               src={book.coverImage}
               alt={book.title}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, 300px"
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />

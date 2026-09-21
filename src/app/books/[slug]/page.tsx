@@ -22,24 +22,29 @@ interface BookPageProps {
 }
 
 export async function generateMetadata({ params }: BookPageProps) {
-  const { slug } = await params;
-  const book = await prisma.book.findUnique({
-    where: { slug },
-  });
+  try {
+    const { slug } = await params;
+    const book = await prisma.book.findUnique({
+      where: { slug },
+    });
 
-  if (!book) {
-    return { title: 'Book Not Found | ALSA.S' };
-  }
+    if (!book) {
+      return { title: 'Book Not Found | ALSA.S' };
+    }
 
-  return {
-    title: `${book.title} | Books`,
-    description: book.description,
-    openGraph: {
-      title: `${book.title} by Alsa.S`,
+    return {
+      title: `${book.title} | Books`,
       description: book.description,
-      images: [{ url: book.coverImage }],
-    },
-  };
+      openGraph: {
+        title: `${book.title} by Alsa.S`,
+        description: book.description,
+        images: book.coverImage ? [{ url: book.coverImage }] : [],
+      },
+    };
+  } catch (err) {
+    console.error('Error generating book metadata:', err);
+    return { title: 'Books | ALSA.S' };
+  }
 }
 
 export const revalidate = 60;
@@ -47,12 +52,17 @@ export const revalidate = 60;
 export default async function BookDetailPage({ params }: BookPageProps) {
   const { slug } = await params;
 
-  const book = await prisma.book.findUnique({
-    where: { slug },
-    include: {
-      purchaseLinks: true,
-    },
-  });
+  let book = null;
+  try {
+    book = await prisma.book.findUnique({
+      where: { slug },
+      include: {
+        purchaseLinks: true,
+      },
+    });
+  } catch (err) {
+    console.error('Error loading book:', err);
+  }
 
   if (!book) {
     notFound();
@@ -110,6 +120,7 @@ export default async function BookDetailPage({ params }: BookPageProps) {
                 alt={book.title}
                 fill
                 priority
+                unoptimized
                 sizes="(max-width: 1024px) 320px, 400px"
                 className="object-cover"
               />

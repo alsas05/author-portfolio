@@ -10,38 +10,43 @@ import { formatDate } from '@/lib/utils';
 export const revalidate = 60; // Revalidate every minute
 
 export default async function HomePage() {
-  // Fetch featured book
-  let featuredBook = await prisma.book.findFirst({
-    where: { featured: true },
-    include: { purchaseLinks: true },
-  });
+  let featuredBook: any = null;
+  let books: any[] = [];
+  let recentWritings: any[] = [];
+  let recentPosts: any[] = [];
 
-  if (!featuredBook) {
+  try {
     featuredBook = await prisma.book.findFirst({
+      where: { featured: true },
       include: { purchaseLinks: true },
-      orderBy: { order: 'asc' },
     });
+
+    if (!featuredBook) {
+      featuredBook = await prisma.book.findFirst({
+        include: { purchaseLinks: true },
+        orderBy: { order: 'asc' },
+      });
+    }
+
+    books = await prisma.book.findMany({
+      orderBy: { order: 'asc' },
+      take: 4,
+    });
+
+    recentWritings = await prisma.writing.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 3,
+    });
+
+    recentPosts = await prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 3,
+    });
+  } catch (err) {
+    console.error('Error loading homepage data from DB:', err);
   }
-
-  // Fetch recent books
-  const books = await prisma.book.findMany({
-    orderBy: { order: 'asc' },
-    take: 4,
-  });
-
-  // Fetch recent writings
-  const recentWritings = await prisma.writing.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
-    take: 3,
-  });
-
-  // Fetch recent blog posts
-  const recentPosts = await prisma.blogPost.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
-    take: 3,
-  });
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -141,6 +146,7 @@ export default async function HomePage() {
                     alt={featuredBook.title}
                     fill
                     priority
+                    unoptimized
                     sizes="(max-width: 1024px) 300px, 400px"
                     className="object-cover"
                   />
@@ -336,6 +342,7 @@ export default async function HomePage() {
                       src={post.featuredImage}
                       alt={post.title}
                       fill
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, 400px"
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />

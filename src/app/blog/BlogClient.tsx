@@ -99,6 +99,7 @@ export default function BlogClient({ posts }: BlogClientProps) {
                 alt={featuredPost.title}
                 fill
                 priority
+                unoptimized
                 sizes="(max-width: 1024px) 100vw, 700px"
                 className="object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -160,6 +161,7 @@ export default function BlogClient({ posts }: BlogClientProps) {
                     src={post.featuredImage}
                     alt={post.title}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 400px"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />

@@ -12,10 +12,15 @@ export const metadata = {
 export const revalidate = 60;
 
 export default async function BlogPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
-  });
+  let posts: any[] = [];
+  try {
+    posts = await prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+    });
+  } catch (err) {
+    console.error('Failed to load blog posts:', err);
+  }
 
   return (
     <div className="py-16 sm:py-24 px-6 sm:px-8 max-w-7xl mx-auto w-full">

@@ -12,10 +12,15 @@ export const metadata = {
 export const revalidate = 60;
 
 export default async function BooksPage() {
-  const books = await prisma.book.findMany({
-    orderBy: { order: 'asc' },
-    include: { purchaseLinks: true },
-  });
+  let books: any[] = [];
+  try {
+    books = await prisma.book.findMany({
+      orderBy: { order: 'asc' },
+      include: { purchaseLinks: true },
+    });
+  } catch (err) {
+    console.error('Failed to load books from database:', err);
+  }
 
   return (
     <div className="py-16 sm:py-24 px-6 sm:px-8 max-w-7xl mx-auto w-full">

@@ -39,6 +39,7 @@ export default async function AboutPage() {
               alt="Alsa.S writing in her sanctuary"
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 300px, 400px"
               className="object-cover filter sepia-[0.15] contrast-105"
             />

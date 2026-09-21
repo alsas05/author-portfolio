@@ -11,25 +11,30 @@ interface BlogPostPageProps {
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps) {
-  const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-  });
+  try {
+    const { slug } = await params;
+    const post = await prisma.blogPost.findUnique({
+      where: { slug },
+    });
 
-  if (!post) {
-    return { title: 'Essay Not Found | ALSA.S' };
-  }
+    if (!post) {
+      return { title: 'Essay Not Found | ALSA.S' };
+    }
 
-  return {
-    title: `${post.title} | The Journal`,
-    description: post.excerpt,
-    openGraph: {
-      title: `${post.title} — Alsa.S`,
+    return {
+      title: `${post.title} | The Journal`,
       description: post.excerpt,
-      type: 'article',
-      images: post.featuredImage ? [{ url: post.featuredImage }] : [],
-    },
-  };
+      openGraph: {
+        title: `${post.title} — Alsa.S`,
+        description: post.excerpt,
+        type: 'article',
+        images: post.featuredImage ? [{ url: post.featuredImage }] : [],
+      },
+    };
+  } catch (err) {
+    console.error('Error generating blog metadata:', err);
+    return { title: 'The Journal | ALSA.S' };
+  }
 }
 
 export const revalidate = 60;
@@ -37,9 +42,14 @@ export const revalidate = 60;
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
 
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-  });
+  let post = null;
+  try {
+    post = await prisma.blogPost.findUnique({
+      where: { slug },
+    });
+  } catch (err) {
+    console.error('Error loading blog post:', err);
+  }
 
   if (!post) {
     notFound();
@@ -56,14 +66,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   // Related posts
-  const relatedPosts = await prisma.blogPost.findMany({
-    where: {
-      published: true,
-      id: { not: post.id },
-      category: post.category,
-    },
-    take: 3,
-  });
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.blogPost.findMany({
+      where: {
+        published: true,
+        id: { not: post.id },
+        category: post.category,
+      },
+      take: 3,
+    });
+  } catch (err) {
+    console.error('Error loading related posts:', err);
+  }
 
   // Schema.org Article Structured Data
   const jsonLd = {
@@ -131,6 +146,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             alt={post.title}
             fill
             priority
+            unoptimized
             sizes="(max-width: 1024px) 100vw, 900px"
             className="object-cover"
           />
