@@ -60,18 +60,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/books/like-the-moon-to-the-tide" className="hover:text-white transition-colors">
-                  Like the Moon to the Tide
-                </Link>
-              </li>
-              <li>
                 <Link href="/books/chronicles-of-heart-a-loves-tapestry" className="hover:text-white transition-colors">
-                  Chronicles of Heart
-                </Link>
-              </li>
-              <li>
-                <Link href="/books/the-devourers-crown" className="hover:text-white transition-colors">
-                  The Devourer&apos;s Crown
+                  Chronicles of Heart: A Love&apos;s Tapestry
                 </Link>
               </li>
             </ul>

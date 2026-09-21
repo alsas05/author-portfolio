@@ -12,9 +12,15 @@ export async function GET() {
       orderBy: { order: 'asc' },
     });
     return NextResponse.json({ books });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Books fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch books' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to fetch books',
+      message: error?.message || String(error),
+      code: error?.code,
+      meta: error?.meta,
+      envDbUrl: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':***@') : 'not-set',
+    }, { status: 500 });
   }
 }
 
