@@ -14,17 +14,18 @@ export const metadata = {
 export const revalidate = 0;
 
 export default async function AboutPage() {
-  const setting = await prisma.siteSetting.findUnique({
-    where: { key: 'about_page_data' },
-  });
-
   let data = DEFAULT_ABOUT_DATA;
-  if (setting) {
-    try {
+
+  try {
+    const setting = await prisma.siteSetting.findUnique({
+      where: { key: 'about_page_data' },
+    });
+
+    if (setting) {
       data = { ...DEFAULT_ABOUT_DATA, ...JSON.parse(setting.value) };
-    } catch {
-      // Fallback to default
     }
+  } catch (err) {
+    console.error('Failed to load dynamic about data, using fallback defaults:', err);
   }
 
   return (

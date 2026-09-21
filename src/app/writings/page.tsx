@@ -18,10 +18,15 @@ interface WritingsPageProps {
 export default async function WritingsPage({ searchParams }: WritingsPageProps) {
   const { category } = await searchParams;
 
-  const writings = await prisma.writing.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
-  });
+  let writings: any[] = [];
+  try {
+    writings = await prisma.writing.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+    });
+  } catch (err) {
+    console.error('Failed to load writings from database:', err);
+  }
 
   return (
     <div className="py-16 sm:py-24 px-6 sm:px-8 max-w-7xl mx-auto w-full">
