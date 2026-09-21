@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Book {
+  id              String         @id @default(cuid())
+  title           String
+  slug            String         @unique
+  subtitle        String?
+  description     String
+  synopsis        String
+  genre           String
+  coverImage      String
+  authorNote      String?
+  excerpt         String?
+  publisher       String?
+  publicationDate String?
+  isbn            String?
+  pageCount       Int?
+  language        String?        @default("English")
+  format          String?        @default("Hardcover & Paperback")
+  status          String         @default("PUBLISHED") // "PUBLISHED", "UPCOMING"
+  featured        Boolean        @default(false)
+  order           Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  purchaseLinks   PurchaseLink[]
+}
+
+model PurchaseLink {
+  id          String   @id @default(cuid())
+  bookId      String
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  platform    String   // "Amazon", "Publisher", "Barnes & Noble", "Bookshop.org", "Apple Books", "Waterstones", etc.
+  url         String
+  displayName String
+  region      String?  @default("Global")
+  clickCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Writing {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  category    String   // "Poetry", "Short Stories", "Excerpts", "Letters", "Reflections"
+  content     String
+  excerpt     String
+  coverImage  String?
+  tags        String?  // Comma separated tags
+  readingTime String?  @default("3 min read")
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogPost {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  category      String   // "Writing Journey", "Behind the Stories", "Author's Journal", "Book Updates", "Reading Corner", "Thoughts"
+  content       String
+  excerpt       String
+  featuredImage String?
+  tags          String?  // Comma separated tags
+  readingTime   String?  @default("5 min read")
+  published     Boolean  @default(true)
+  publishedAt   DateTime @default(now())
+  views         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  status       String   @default("ACTIVE") // "ACTIVE", "UNSUBSCRIBED"
+  subscribedAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubscriberDispatch {
+  id              String   @id @default(cuid())
+  subject         String
+  messageType     String   @default("LETTER") // "LETTER", "DECK", "ANNOUNCEMENT", "EXCERPT"
+  content         String
+  deckTitle       String?
+  deckUrl         String?
+  deckDescription String?
+  recipientCount  Int      @default(0)
+  recipientsJson  String?  // JSON stringified array of emails
+  status          String   @default("SENT") // "SENT", "DRAFT"
+  sentAt          DateTime @default(now())
+}
+

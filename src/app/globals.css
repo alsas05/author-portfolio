@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #FAF8F5;
+    --bg-secondary: #F4EFEA;
+    --bg-card: #FFFFFF;
+    --border-subtle: #EAE2D8;
+    --text-primary: #1A1715;
+    --text-secondary: #5A544C;
+    --text-muted: #8C7A65;
+    --accent-gold: #C5A059;
+    --accent-gold-dark: #8C6D3B;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-feature-settings: "kern", "liga", "clig", "calt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Typography Best Practices (from modern web guidance) */
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+
+  p, blockquote, li, .pretty-prose {
+    text-wrap: pretty;
+  }
+}
+
+/* Custom Literary Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5EFEB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D3C4AF;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8A389;
+}
+
+/* Literary Elements & Animations */
+.drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-serif);
+  font-size: 3.5rem;
+  line-height: 0.8;
+  padding-top: 4px;
+  padding-right: 10px;
+  padding-bottom: 2px;
+  color: #C5A059;
+  font-weight: 600;
+}
+
+/* Book 3D Spine and Cover Effect */
+.book-cover-container {
+  perspective: 1000px;
+}
+
+.book-cover {
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+  transform-origin: left center;
+  box-shadow: 
+    -4px 4px 10px rgba(18, 16, 14, 0.15),
+    10px 14px 28px rgba(18, 16, 14, 0.25);
+}
+
+.book-cover:hover {
+  transform: rotateY(-8deg) scale(1.02);
+  box-shadow: 
+    -8px 8px 18px rgba(18, 16, 14, 0.2),
+    16px 20px 36px rgba(18, 16, 14, 0.35);
+}
+
+.book-spine-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 20px;
+  width: 2px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.15));
+  pointer-events: none;
+}
+
+/* Reader Mode Themes */
+.theme-ivory {
+  background-color: #FAF8F5;
+  color: #1A1715;
+}
+
+.theme-sepia {
+  background-color: #F4EAD4;
+  color: #3A2F25;
+}
+
+.theme-midnight {
+  background-color: #12100E;
+  color: #D9CDBF;
+}
+
+/* Subtle Golden Shimmer Divider */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #C5A059 50%, transparent 100%);
+  opacity: 0.4;
+}
+
+.deckled-border {
+  border-bottom: 1px dashed #D3C4AF;
+}
