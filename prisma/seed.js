@@ -4,27 +4,9 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding ALSA.S Author Platform database...');
+  console.log('Seeding ALSA.S Author Platform with author latest content...');
 
-  // 1. Seed Admin User
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: 'admin@alsas.com' },
-  });
-
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash('AlsaAuthor2026!', 10);
-    await prisma.user.create({
-      data: {
-        email: 'admin@alsas.com',
-        name: 'Alsa.S',
-        passwordHash,
-        role: 'ADMIN',
-      },
-    });
-    console.log('Admin user created: admin@alsas.com');
-  }
-
-  // 2. Clear previous content if refreshing
+  // 1. Clear previous content if refreshing
   await prisma.purchaseLink.deleteMany({});
   await prisma.book.deleteMany({});
   await prisma.writing.deleteMany({});
@@ -32,571 +14,59 @@ async function main() {
   await prisma.newsletterSubscriber.deleteMany({});
   await prisma.contactMessage.deleteMany({});
   await prisma.siteSetting.deleteMany({});
+  await prisma.user.deleteMany({});
 
-  // 3. Seed Books
-  const book1 = await prisma.book.create({
+  // 2. Seed Admin User
+  const passwordHash = await bcrypt.hash('AlsaAuthor2026!', 10);
+  await prisma.user.create({
     data: {
-      title: 'Like the Moon to the Tide',
-      slug: 'like-the-moon-to-the-tide',
-      subtitle: 'A Novel of Unspoken Gravities',
-      genre: 'Literary Fiction / Contemporary Romance',
-      description: 'An intimate, cinematic novel tracing two souls bound by silent rhythms of departure and return across coastal mist and midnight trains.',
-      synopsis: `Set against the tempestuous backdrop of the northern windswept coast, 'Like the Moon to the Tide' tells the story of Calla and Julian—two estranged artists drawn back to the weathered cottage where their childhoods intertwined. 
-
-As unspoken griefs wash ashore with each incoming wave, they must navigate the pull between memory and reinvention, confronting the silent gravity that has quietly governed every choice they have ever made.
-
-With lyrical prose that captures the briny salt of ocean air and the quiet ache of midnight conversations, Alsa.S crafts an unforgettable portrait of devotion, longing, and the courage it takes to surrender to what is inevitable.`,
-      authorNote: `I began writing this book in an attic beside the Atlantic during a November of unrelenting storms. Julian and Calla lived in my notebooks for three years before they found their way onto the page. To everyone who has ever loved someone from across an ocean or across a crowded room in silence: this tide belongs to you.`,
-      excerpt: `The ocean does not ask permission of the shoreline before it crashes upon it. It simply knows where it is pulled, and how to drown whatever stones are foolish enough to resist.
-
-She watched him from across the damp deck of the ferry. The fog was so thick it smelled of cold salt and iron, clinging to the wool of his coat like hoarfrost. When Julian turned his head, his eyes caught the amber harbor beacon—the same amber light that had illuminated the porch of the boathouse ten winters ago when neither of them had known how to say goodbye.
-
-"You're late, Calla," he said softly, the words barely louder than the hum of the engine beneath their feet.
-
-"The train broke down in Camden," she replied. She did not step closer, though every nerve in her palms pleaded with the distance. "I thought you wouldn't wait."
-
-Julian looked out into the grey horizon where the sea blurred into sky. "I have been waiting since October. Another hour is nothing."`,
-      coverImage: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000&auto=format&fit=crop',
-      publisher: 'Veritas & Quill Press',
-      publicationDate: 'October 14, 2024',
-      isbn: '978-1-954382-01-4',
-      pageCount: 384,
-      language: 'English',
-      format: 'Hardcover, Paperback, Clothbound Collector',
-      status: 'PUBLISHED',
-      featured: true,
-      order: 1,
-      purchaseLinks: {
-        create: [
-          {
-            platform: 'Amazon',
-            displayName: 'Buy on Amazon',
-            url: 'https://amazon.com',
-            region: 'Global',
-            clickCount: 142,
-          },
-          {
-            platform: 'Publisher',
-            displayName: 'Buy from Veritas & Quill',
-            url: 'https://example.com/publisher',
-            region: 'Direct / Signed Editions',
-            clickCount: 88,
-          },
-          {
-            platform: 'Barnes & Noble',
-            displayName: 'Barnes & Noble',
-            url: 'https://barnesandnoble.com',
-            region: 'North America',
-            clickCount: 45,
-          },
-          {
-            platform: 'Bookshop.org',
-            displayName: 'Support Indie Bookstores',
-            url: 'https://bookshop.org',
-            region: 'US / UK',
-            clickCount: 63,
-          },
-        ],
-      },
+      email: 'admin@alsas.com',
+      name: 'Alsa.S',
+      passwordHash,
+      role: 'ADMIN',
     },
   });
 
-  const book2 = await prisma.book.create({
+  // 3. Seed Books & Purchase Links
+  await prisma.book.create({
     data: {
-      title: "Chronicles of Heart: A Love's Tapestry",
-      slug: 'chronicles-of-heart-a-loves-tapestry',
-      subtitle: 'A Collection of Poetry and Fragments',
-      genre: 'Poetry',
-      description: 'A luminous anthology of poetic meditations on adoration, vulnerability, sacred distance, and the threads that weave fragile human hearts into endurance.',
-      synopsis: `'Chronicles of Heart: A Love's Tapestry' is an evocative collection divided into four movements: Dawnlight, The Weave, The Unraveling, and The Gold Leaf. 
-
-Through spare, crystalline verses and haunting lyrical vignettes, Alsa.S explores the quietest sanctuaries of devotion. Here are poems for the sleepless hours, for the letters kept unposted in coat pockets, and for the sudden realization that love is not a harbor we reach, but the vessel we rebuild anew each morning.`,
-      authorNote: `These poems were born in notebooks with coffee rings and dog-eared margins. They were written between train rides, airport terminals, and quiet midnight desks. May these pages hold your heart gently, as they held mine.`,
-      excerpt: `You asked me once where the light goes
-when the lamp is turned low.
-
-I pointed to the hollow beneath your collarbone,
-where your breath gathers in quiet cadence
-while the city sleeps.
-
-Some lanterns do not illuminate walls.
-Some lanterns exist only to remind the dark
-that we were here,
-and we were not afraid to burn.`,
-      coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000&auto=format&fit=crop',
-      publisher: 'Hesperus Literary Arts',
-      publicationDate: 'February 14, 2023',
-      isbn: '978-0-998241-18-2',
-      pageCount: 192,
-      language: 'English',
-      format: 'Parchment Hardcover with Gold Foil',
-      status: 'PUBLISHED',
-      featured: false,
-      order: 2,
+      ...({"title":"Chronicles of Heart: A Love's Tapestry","slug":"chronicles-of-heart-a-loves-tapestry","subtitle":"A poetry collection","description":"A luminous anthology of poetic meditations on adoration, vulnerability, sacred distance, and the threads that weave fragile human hearts into endurance.","synopsis":"Chronicles of Heart: A Love’s Tapestry is a heartfelt collection of poetry that explores the beauty, pain, longing, and vulnerability of love. Through delicate verses and raw emotions, it weaves together stories of cherished moments, heartbreak, unspoken feelings, and the echoes of a heart that never stops feeling. A tapestry of emotions, where every poem holds a piece of a soul. ❤️","genre":"Poetry","coverImage":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp-oif6nZ77tjekwP56tzSJOLtTYKor6DqF5HgTY4LIw&s","authorNote":"These poems were born in notebooks with coffee rings and dog-eared margins. They were written between train rides, airport terminals, and quiet midnight desks. May these pages hold your heart gently, as they held mine.","excerpt":"\"In silence deep, my heart reveals,\nA love unspoken, wounds that never heals.\nIn the echoes of your fading touch,\nI find myself yearning, missing much.\nI still love you, though you may not see,\nThe shattered pieces that remain of me.\"\n\n— Echoes of Unspoken Love","publisher":"Notion Press","publicationDate":"May 30,2025","isbn":"9798892773539","pageCount":34,"language":"English","format":"Centerpin Paperback","status":"PUBLISHED","featured":false,"order":2}),
       purchaseLinks: {
-        create: [
-          {
-            platform: 'Amazon',
-            displayName: 'Buy on Amazon',
-            url: 'https://amazon.com',
-            region: 'Global',
-            clickCount: 97,
-          },
-          {
-            platform: 'Publisher',
-            displayName: 'Publisher Edition',
-            url: 'https://example.com/hesperus',
-            region: 'Global',
-            clickCount: 39,
-          },
-          {
-            platform: 'Waterstones',
-            displayName: 'Waterstones UK',
-            url: 'https://waterstones.com',
-            region: 'UK & Europe',
-            clickCount: 22,
-          },
-        ],
-      },
-    },
+        create: [{"platform":"Amazon","url":"https://amzn.in/d/00P2dkM3","displayName":"Buy on Amazon","region":"Global","clickCount":1},{"platform":"Notion Press","url":"https://share.google/SvCVq4AM5n0hDCcb9","displayName":"Publisher Edition","region":"Global","clickCount":1}]
+      }
+    }
   });
 
-  const book3 = await prisma.book.create({
-    data: {
-      title: "The Devourer's Crown",
-      slug: 'the-devourers-crown',
-      subtitle: 'The Embers of Oakhaven: Book I',
-      genre: 'Dark Epic Fantasy',
-      description: 'In an empire where monarchs must consume memories of their ancestors to maintain sovereign wards, a disgraced archivist discovers that the oldest crown is devouring the realm from within.',
-      synopsis: `The Crown of Vaelen does not rest upon gold and jewel; it feeds on the living reminiscence of the kingdom's martyrs. 
-
-When young archivist Lyra Vane is summoned to transcribe the dying whispers of High King Raymond, she uncovers an ancient parchment that was never meant to survive the Great Purge. The wards holding the Outer Abyss are not failing from external siege—they are being surrendered piece by piece to satisfy the insatiable hunger of the sovereign diadem.
-
-Forced into an uneasy alliance with an exiled shadow-weaver whose very lineage was erased from the annals of time, Lyra must decipher the forbidden cryptograms before the next solar solstice claims what remains of her own humanity.`,
-      authorNote: `Fantasy has always been, for me, the grandest canvas to examine truth, power, and historical erasure. 'The Devourer's Crown' was an odyssey of worldbuilding, linguistic reconstruction, and dark majesty. Prepare for shadows with teeth.`,
-      excerpt: `The crown smelled of cold copper and wet ashes.
-
-It rested on a plinth of black basalt at the center of the sanctum, pulsing with a rhythm so slow it could have belonged to a mountain. When Lyra stepped across the chalk line of the threshold, the whispers began—not inside the room, but between her ears, scratching at the backs of her eyes like moths against a lantern chimney.
-
-"Touch it," the voice whispered, in the cadence of a brother she had buried seven autumns ago. "Touch it, and we will tell you where he went."`,
-      coverImage: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?q=80&w=1000&auto=format&fit=crop',
-      publisher: 'Blackwood & Thorne',
-      publicationDate: 'November 2025',
-      isbn: '978-1-849201-92-0',
-      pageCount: 512,
-      language: 'English',
-      format: 'Collector Hardback with Illustrated Endpapers',
-      status: 'UPCOMING',
-      featured: false,
-      order: 3,
-      purchaseLinks: {
-        create: [
-          {
-            platform: 'Amazon',
-            displayName: 'Pre-order on Amazon',
-            url: 'https://amazon.com',
-            region: 'Global',
-            clickCount: 51,
-          },
-          {
-            platform: 'Publisher',
-            displayName: 'Special Edition Pre-order',
-            url: 'https://example.com/blackwood',
-            region: 'Signed Hardcover',
-            clickCount: 67,
-          },
-        ],
-      },
-    },
-  });
-
-  const book4 = await prisma.book.create({
-    data: {
-      title: 'Do Not Get Off',
-      slug: 'do-not-get-off',
-      subtitle: 'A Psychological Noir',
-      genre: 'Literary Thriller / Noir',
-      description: 'A midnight commuter train that skips every station into an infinite alpine tunnel, carrying seven strangers whose secrets are inextricably entwined.',
-      synopsis: `It was the 11:42 PM express from Geneva to Zurich. The weather was torrential. The passenger carriage held seven people: an antiquarian dealer, a violinist with a taped wrist, a retired magistrate, an architect fleeing a burning tower, a young mother traveling without her child, a ticket inspector who hasn't spoken a word, and a woman who refuses to look into the glass window.
-
-When the train plunges into the Gotthard massif and the digital clocks reset to 00:00, the carriage doors lock from the exterior. Over the intercom comes a single quiet instruction:
-
-"Do not get off. Not even if you see your own home on the platform."
-
-A razor-sharp, claustrophobic exploration of complicity, moral debt, and the illusions we cling to in the dark.`,
-      authorNote: `Written during long nocturnal sleeper train journeys across Central Europe. The rhythm of steel wheels over rail ties became the metronome of this suspenseful descent.`,
-      excerpt: `The neon signage of St. Moritz flashed past the window at eighty miles per hour.
-
-Arthur looked down at his mechanical wristwatch. The second hand was shuddering backwards. Outside, the blizzard was not blowing snow; it was blowing ash.
-
-"Did anyone hear the conductor announce the bypass?" he asked aloud.
-
-No one answered. The violinist at the end of the aisle simply tightened the brass peg on her G string until the wire snapped with the sound of a pistol shot.`,
-      coverImage: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1000&auto=format&fit=crop',
-      publisher: 'Nocturne Books',
-      publicationDate: 'Coming Late 2026',
-      isbn: '978-0-743289-44-1',
-      pageCount: 320,
-      language: 'English',
-      format: 'Trade Paperback & Audio',
-      status: 'UPCOMING',
-      featured: false,
-      order: 4,
-      purchaseLinks: {
-        create: [
-          {
-            platform: 'Goodreads',
-            displayName: 'Add to Goodreads',
-            url: 'https://goodreads.com',
-            region: 'Global',
-            clickCount: 34,
-          },
-        ],
-      },
-    },
-  });
-
-  // 4. Seed Writings (Poetry, Short Stories, Excerpts, Letters, Reflections)
-  await prisma.writing.createMany({
-    data: [
-      {
-        title: 'Tonight, Everything Glows',
-        slug: 'tonight-everything-glows',
-        category: 'Poetry',
-        readingTime: '2 min read',
-        excerpt: 'A quiet study of amber lamplight reflecting in tea, and how the world softens when the rain begins.',
-        content: `Tonight, the rain makes a cathedral of the eaves.
-The tea in my porcelain cup is amber,
-reflecting the lamp that has kept vigil over my desk
-since November began.
-
-There is a way the darkness holds the city
-that feels less like an absence
-and more like a hand placed over an eyelid,
-whispering: *Rest now. You have done enough.*
-
-I think of the words we left unsaid
-in the vestibule beneath the cold portico.
-They did not vanish into the damp pavement;
-they merely waited for an hour quiet enough
-to be understood.
-
-Tonight, everything glows
-not because the sun has returned,
-but because we have learned
-how to keep our own fire.`,
-        tags: 'Night,Rain,Stillness,Reflection',
-        published: true,
-        publishedAt: new Date('2025-01-15T22:00:00Z'),
-        views: 842,
-      },
-      {
-        title: 'Whispers at Twilight',
-        slug: 'whispers-at-twilight',
-        category: 'Poetry',
-        readingTime: '2 min read',
-        excerpt: 'Verses on the threshold where the day surrenders to dusk and memory becomes audible.',
-        content: `The swallows dip low over the marsh reeds.
-The sky is the color of bruised plums
-fading into bruised gold.
-
-Stand here with me on the timber dock.
-Listen to how the tide breathes against the pilings,
-heavy and slow, like an ancient animal
-turning in its sleep.
-
-What we were cannot be undone.
-What we will become has not yet taken shape.
-In this hour of blue shadow,
-let us be nothing more than two silhouettes
-holding the seam between sky and earth.`,
-        tags: 'Twilight,Seaside,Silence',
-        published: true,
-        publishedAt: new Date('2025-02-04T18:30:00Z'),
-        views: 619,
-      },
-      {
-        title: 'A Taxonomy of Longing',
-        slug: 'a-taxonomy-of-longing',
-        category: 'Poetry',
-        readingTime: '3 min read',
-        excerpt: 'Categorizing the seven distinct weights of human absence through botanical metaphors.',
-        content: `I. The Fern in the North Window
-It grows without direct sun,
-thriving on pale northern daylight.
-This is the longing that does not wound;
-it simply leans toward the pane.
-
-II. The Dry Well in the Orchard
-Deep stone. A circle of sky at the bottom.
-You drop a pebble and count four seconds
-before the echo rises.
-This is the longing for a home
-that was demolished while you were growing up.
-
-III. The Pressed Lavender
-Folded inside the pages of a dictionary
-between *Grave* and *Grace*.
-Ten years dry, yet if you crush the petal
-between two fingertips,
-the summer of nineteen-ninety-eight
-rushes into your lungs.
-
-IV. The Unanswered Letter
-Ink that drys in the drawer.
-Addressed to someone who changed cities
-without leaving a forwarding address.
-This is not grief;
-it is an envelope holding your own youth.`,
-        tags: 'Memory,Solitude,Love',
-        published: true,
-        publishedAt: new Date('2025-02-20T14:15:00Z'),
-        views: 1120,
-      },
-      {
-        title: "The Clockmaker's Unfinished Hour",
-        slug: 'the-clockmakers-unfinished-hour',
-        category: 'Short Stories',
-        readingTime: '7 min read',
-        excerpt: 'In an alpine valley, an artisan crafts a clock that ticks sixty-one seconds to each minute for those who need more time.',
-        content: `Master Tobias kept the door to his workshop locked with a key cast in bell-metal.
-
-The villagers of Saint-Luc knew better than to knock after dusk. It was during the violet hours between twilight and midnight that the pendulums in his atelier achieved a peculiar synchrony. If you stood beneath his eaves on a frosty winter evening, you would hear not the erratic chatter of thirty distinct escapements, but a solitary, resonant heartbeat that seemed to slow the falling of the snowflakes.
-
-"Time," Tobias had once told me while adjusting the balance wheel of a carriage clock with bone tweezers, "is not a river. That is the conceit of poets. Time is a woven linen. And like any textile, the thread occasionally catches upon the loom."
-
-In his eighty-fourth year, after the death of his granddaughter Sophie, Tobias began what he called *The Pendule du Pardon*. It was fashioned from unpolished cedar, brass gears harvested from nineteenth-century astronomical instruments, and a hairspring coiled from silver wire.
-
-Its dial was unremarkable, save for one detail: between the numbers twelve and one, there was an unmarked ivory tooth.
-
-Once each hour, when the minute hand ascended to the zenith, it did not immediately strike the hour. It hesitated upon that tooth for precisely sixty seconds. A ghost minute. A sixty-first second in which the world paused its tally of mortal debt.
-
-People came from Zurich and Lyon when rumor spread. A banker whose daughter had stopped speaking to him. A physician whose diagnosis had come twenty-four hours too late. A composer who had lost the cadence of his final movement.
-
-They would sit in Tobias's armchair of worn horsehair, hands clasped, waiting for the hand to reach the top. And in that silent, uncounted minute, they wept—not with sorrow, but with the astonishing relief of being granted an instant outside of consequence.
-
-When Tobias was found asleep forever at his workbench on the first frost of November, the clock was still running. It is running still. Come to Saint-Luc if your heart is heavy. Sit in the chair. Listen for the sixty-first second.`,
-        tags: 'Story,Time,Memory,Alpine',
-        published: true,
-        publishedAt: new Date('2025-01-28T10:00:00Z'),
-        views: 1450,
-      },
-      {
-        title: 'Letters to the Constellations: Ursa Major',
-        slug: 'letters-to-the-constellations-ursa-major',
-        category: 'Letters',
-        readingTime: '4 min read',
-        excerpt: 'An epistolary reflection addressed to the northern sky on navigation, grief, and eternal bearings.',
-        content: `Dear Bear of the Northern Pole,
-
-Tonight I walked to the edge of the breakwater where the harbor lantern stops. You were hanging low over the mastheads, seven cold studs of diamond pressed into black wool.
-
-When I was seven, my father pointed his thumb toward your pointer stars and showed me how to draw a straight line to Polaris. "No matter how lost the skiff gets," he said, his coat smelling of pipe tobacco and cedar sawdust, "that one does not wander. Everything turns around her."
-
-I wonder if you grow weary of being our landmark. For five thousand years, sailors, wanderers, refugees, and poets have looked up at your silver shoulders, begging for bearings. We ask so much of things that are millions of light-years away, simply because they do not change their minds.
-
-Tonight, I do not ask for a direction. I only ask to be reminded that distance does not mean absence. You burn in the ancient silence, and down here, beside the cold tide, a pen scratches across paper, answering your light.
-
-With quiet reverence,
-Alsa`,
-        tags: 'Letters,Astronomy,Philosophy',
-        published: true,
-        publishedAt: new Date('2025-02-10T21:00:00Z'),
-        views: 730,
-      },
-      {
-        title: 'The Architecture of Silence',
-        slug: 'the-architecture-of-silence',
-        category: 'Reflections',
-        readingTime: '4 min read',
-        excerpt: 'Why the spaces between sentences in literature carry more emotional truth than the words themselves.',
-        content: `Music exists in the decay of sound into quiet. A chord struck upon a grand piano is beautiful not only at the instant the hammer kisses the felt string, but in the shimmering resonance that follows—the long, trembling trail that dissolves into the wooden floorboards.
-
-Writing operates on identical physics.
-
-The sentences that stay with us for decades are rarely the loudest or the most ornate. They are the sentences flanked by vast, intentional silence. When Virginia Woolf writes: *"Time passes,"* or when Gabriel García Márquez recalls the afternoon his father took him to discover ice, the words are merely lanterns hanging in an immense room of unspoken history.
-
-In our modern world, silence is treated as a void to be filled immediately by notifications, commentary, and algorithmic noise. But for the writer, silence is the mortar. Without it, the bricks of our vocabulary crumble under the first gust of wind.
-
-Guard your quiet. Protect the hours before dawn. The page requires not your cleverness, but your stillness.`,
-        tags: 'Craft,Writing,Silence,Philosophy',
-        published: true,
-        publishedAt: new Date('2025-03-01T08:00:00Z'),
-        views: 980,
-      },
-    ],
-  });
-
-  // 5. Seed Blog Posts (Editorial Magazine)
-  await prisma.blogPost.createMany({
-    data: [
-      {
-        title: 'The Sacred Hour: Why I Write Before the City Wakes',
-        slug: 'the-sacred-hour-why-i-write-before-the-city-wakes',
-        category: 'Writing Journey',
-        readingTime: '5 min read',
-        featuredImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=1200&auto=format&fit=crop',
-        excerpt: 'At 4:45 AM, the world is devoid of expectations. In that blue threshold between dreams and dawn, the rawest words find their way to paper.',
-        content: `At 4:45 AM, the streetlights outside my window still cast long amber pools across the pavement. The milk truck hasn't rattled down the corner; the neighbor's kettle has not yet whistled; the inbox is entirely asleep.
-
-In this threshold between dreaming and consciousness, the analytical editor who lives in the frontal lobe is still drowsy. She hasn't yet put on her spectacles to tell me that my metaphors are too extravagant or that my syntax is overly nostalgic. 
-
-And so, the ink flows without interrogation.
-
-### The Anatomy of the Morning Desk
-
-My morning ritual is monastic and deliberate:
-1. **The Match:** Striking a cedar match to light a beeswax candle. The faint honey aroma marks the boundary between everyday life and the writing room.
-2. **The Kettle:** Pouring hot water over loose Lapsang Souchong tea. That smoky aroma has accompanied every book I have ever written.
-3. **The Blank Notebook:** I write my first drafts by hand, using a fountain pen with midnight-black ink. The physical drag of the nib against fibrous paper grounds the cadence of the sentence in a way a glass screen never could.
-
-When the sun finally breaks above the rooflines, staining the brick chimneypots in rose and apricot, two hours have evaporated. A scene has unfolded. A poem has found its cadence.
-
-To anyone struggling with creative inertia: try setting your alarm ninety minutes before your obligations begin. Meet the morning before it has been tainted by the world's demands. You will be astonished by who meets you at the desk.`,
-        tags: 'Writing,Rituals,Morning,Creative Process',
-        published: true,
-        publishedAt: new Date('2025-01-20T06:00:00Z'),
-        views: 2130,
-      },
-      {
-        title: 'Behind Like the Moon to the Tide: Mapping the Emotional Archipelago',
-        slug: 'behind-like-the-moon-to-the-tide',
-        category: 'Behind the Stories',
-        readingTime: '6 min read',
-        featuredImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-        excerpt: 'The real-life coastal cottages, ferry crossings, and personal griefs that converged to birth Julian and Calla’s story.',
-        content: `Readers frequently ask me if 'Pelican Cove'—the storm-battered harbor where Julian and Calla reunite in *Like the Moon to the Tide*—is a real place.
-
-The literal answer is no on the nautical charts; but the emotional answer is that it is pieced together from three actual coastlines that have haunted my life.
-
-The rusted boathouse with the green copper roof belongs to a tiny fishing hamlet in northern Maine, where I spent a solitary autumn recovering from pneumonia. The ferry whose engines hum beneath the dialogue is the 6:00 PM crossing to the Isle of Mull in Scotland. And the steep stone stairway where Calla drops her sketchpad in Chapter Fourteen is outside an old chapel in Cornwall.
-
-### The Physics of Longing
-
-When conceiving this novel, I wanted to explore an equation: *Can two people love each other with absolute sincerity and still be wrong for each other's peace?*
-
-Julian represents the tide—constant, rhythmic, predictable in his pull, but ultimately unable to remain still. Calla represents the shoreline—weathered, anchored, yet continually altered by every wave that breaks against her.
-
-Writing their final confrontation in Chapter Twenty-Two took nineteen revisions. Every time I softened the blow, the story felt dishonest. In love, as in nature, erosive forces are not evil; they simply do what water has always done to stone.`,
-        tags: 'Behind the Scenes,Novels,Like the Moon,Inspiration',
-        published: true,
-        publishedAt: new Date('2025-02-12T11:00:00Z'),
-        views: 1840,
-      },
-      {
-        title: 'On Drafts and Discarded Notebooks',
-        slug: 'on-drafts-and-discarded-notebooks',
-        category: "Author's Journal",
-        readingTime: '4 min read',
-        featuredImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1200&auto=format&fit=crop',
-        excerpt: 'Why throwing away fifty pages of an unfinished novel is not an act of failure, but the truest form of editorial respect.',
-        content: `In the bottom drawer of my oak filing cabinet lie seven black moleskine notebooks bound with red rubber bands. 
-
-They contain approximately three hundred thousand words that will never be printed, never be read by an editor, and never see the inside of a bookstore.
-
-For years, I looked upon that drawer with a cold knot of guilt. *Think of the months spent,* a scolding voice would whisper. *Think of the mornings waking at four, only to end up in a drawer.*
-
-It took me finishing three complete books to understand the truth: those discarded words were not waste. They were the scaffolding.
-
-When a cathedral is built, timber beams and rope pulleys surround the stone pillars for years. Once the vaulted ceiling is keyed in with stone, the builders strike down the scaffolding and burn the timber. You do not look at the finished cathedral and mourn the wooden planks. The planks taught the stone how to stand against the sky.
-
-If you have cut a chapter this week, or filed away a story that refused to breathe: do not despair. The work wasn't wasted. It was teaching you how to write the sentence that is coming tomorrow.`,
-        tags: 'Craft,Journal,Editing,Perspective',
-        published: true,
-        publishedAt: new Date('2025-02-28T16:00:00Z'),
-        views: 1540,
-      },
-      {
-        title: 'Notes from the Road: Autumn Readings & Quiet Encounters',
-        slug: 'notes-from-the-road-autumn-readings',
-        category: 'Reading Corner',
-        readingTime: '5 min read',
-        featuredImage: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1200&auto=format&fit=crop',
-        excerpt: 'Memories from five independent bookstores across three states, and the readers who brought their own dog-eared pages.',
-        content: `The life of a writer is ninety-five percent solitary confinement and five percent intense, public vulnerability.
-
-During October, I traveled through small towns to read from *Chronicles of Heart*. In independent bookshops whose floors creaked and whose cats slept atop the philosophy section, I met people who had carried my words into hospital waiting rooms, marriage ceremonies, and long train journeys through bereavement.
-
-One young woman in Providence asked me to sign a copy of *Like the Moon to the Tide* that had been soaked in seawater. The pages were swollen and rippled like accordion bellows. 
-
-"I read this on the cliffs during my divorce," she told me with a calm smile. "The salt water is part of the book now."
-
-I signed my name across the rippled title page with a silver pen. There is no literary prize or bestseller ranking that compares to knowing your words became a shelter during someone's hardest season.`,
-        tags: 'Events,Bookstores,Readers,Tour',
-        published: true,
-        publishedAt: new Date('2025-03-08T13:30:00Z'),
-        views: 1290,
-      },
-      {
-        title: 'Building a Mythos: The Lore Behind The Devourer’s Crown',
-        slug: 'building-a-mythos-the-devourers-crown',
-        category: 'Book Updates',
-        readingTime: '6 min read',
-        featuredImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop',
-        excerpt: 'An early sneak peek into the linguistic systems, memory-magic, and archival architecture of my forthcoming dark fantasy.',
-        content: `For two years, my study has been covered in butcher paper maps, genealogy trees traced in sepia ink, and lexicon indexes in a constructed dialect called *Vaelic*.
-
-In *The Devourer's Crown*, magic is not elemental fire or incantations whispered into the breeze. Magic is **memory**.
-
-To cast a ward that holds back the abyssal horrors beyond the perimeter mountains, the sovereign must surrender an intimate remembrance: the face of their first child, the taste of clean water after battle, the music heard on their wedding night. The Crown takes these memories and turns them into stone.
-
-Over three centuries, the reigning dynasty has become emotionally desiccated—rulers without empathy or personal history, surviving only as hollow vessels for sovereign duty.
-
-Enter Lyra Vane: a low-caste archivist whose job is to record what the kings forget.
-
-I cannot wait to share this dark, opulent world with you when the book releases this November. Here is the first teaser quote:
-
-> *"A kingdom that forgets its scars will gladly bleed again for anyone who promises a song."*`,
-        tags: 'Fantasy,Worldbuilding,Sneak Peek,Devourers Crown',
-        published: true,
-        publishedAt: new Date('2025-03-12T19:00:00Z'),
-        views: 2450,
-      },
-    ],
-  });
+  // 4. Seed Writings
+  await prisma.writing.create({ data: {"title":"Unanswered Prayer","slug":"unanswered-prayer","category":"Poetry","content":"You are the most beautiful of my unanswered prayers..\n\nAnd the funniest part is,\nI never even asked for you—\nNot out loud, anyway.\n\nI kept my wishes folded\nBehind my teeth,\nLearned to smile when you came close,\nLearned to look away\nBefore my eyes could confess\nWhat my lips were too cowardly to say.\n\nI became very good\nAt pretending.\n\nPretending your name\nDoesn't sound different\nWhen someone else says it.\nPretending I don't notice\nWhen you walk into a room.\nPretending I don't remember\nThe smallest things you tell me\nWhile forgetting everything\nI actually meant to forget.\n\nYou have no idea\nHow often I have stood\nAt the edge of saying something\nAnd chosen silence instead.\n\nHow many times\nI have almost let you see me\nAnd then laughed it off\nLike there was nothing there.\n\nMaybe that's the cruelest thing\nAbout loving you—\n\nYou don't know.\n\nAnd I make sure\nYou don't know.\n\nI hide behind jokes,\nBehind casual conversations,\nBehind the ridiculous lie\nThat you're just another person\nI happen to care about.\n\nAs if my heart\nDoesn't lose its composure\nEvery time you look at me\nFor a second longer than usual.\n\nAs if I don't replay\nOrdinary moments with you\nUntil they become\nSomething sacred.\n\nI tell myself\nI'm not waiting for anything.\n\nAnd yet,\nSome foolish part of me\nStill notices when you're online,\nStill hopes you'll sit beside me,\nStill searches your face\nFor a sign\nI have sworn I don't need.\n\nYou are the most beautiful\nOf my unanswered prayers—\n\nNot because you never heard me,\n\nBut because I never had\nThe courage\nTo let you hear.\n\nAnd perhaps one day\nYou'll ask me\nIf I ever felt something.\n\nI'll smile.\n\nI'll say,\n“Of course not.”\n\nAnd I'll hate myself\nFor how easily\nThe lie still comes.\n\nBecause loving you\nWas never the foolish part.\n\nPretending I didn't\nWas.","excerpt":"You are the most beautiful of my unanswered prayers..\n\nAnd the funniest part is,\nI never even asked for you—\nNot out loud, anyway.\n\nI kept my wishes folded\nBehi...","coverImage":null,"tags":"Love","readingTime":"2 min read","published":true,"publishedAt":"2026-09-21T16:12:37.812Z","views":3} });
+
+  // 5. Seed Blogs
+  await prisma.blogPost.create({ data: {"title":"I Wrote to Breathe","slug":"i-wrote-to-breathe","category":"Thoughts","content":"“I didn’t start writing to be read.. I started writing because there were things inside me too loud to stay quiet…\n\nThere are parts of me I’ve only met through words.\nNot the loud kind.\nBut the ones whispered into notebooks when the world was asleep.\n\nI wrote when I didn’t know how to scream.\nI wrote when I didn’t know how to stay.\nSome days, writing felt like the only place I wasn’t invisible.\n\nThere was no audience.\nNo applause.\nJust breathless pages and the weight of feelings I didn’t know how to name.\n\nGrief.\nLonging.\nLove that never said goodbye.\nA quiet kind of ache that made a home in me.\n\nThis is not a post to introduce myself.\nThis is a letter.\nOne you’ll never read.\n\nJoin The Writer's Circle event\nMaybe you left.\nMaybe you never came.\nMaybe you’re just the version of me that didn’t make it through.\n\nBut I want you to know:\n\nI survived.\nThrough ink.\nThrough poems.\nThrough half-scribbled drafts and shaky sentences.\nI wrote not because I was brave,\nbut because writing was the only thing that didn’t walk away.\n\nSo if you find this, and your chest feels a little too full of things you haven’t said yet —\nWelcome.\n\nYou don’t need to be loud here.\nYou just need to breathe.\n\nThank you for being here.\nThis space is a beginning. Maybe a collection of soft heartbreaks. Maybe a home for letters I never sent.\nEither way, I hope you find something that feels like your own reflection.","excerpt":"“I didn’t start writing to be read.. I started writing because there were things inside me too loud to stay quiet…\n\nThere are parts of me I’ve only met through...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*RYxfc-lQGpbxZsPEqLqpdQ.png","tags":null,"readingTime":"2 min read","published":true,"publishedAt":"2025-06-21T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"The Idea that Chose Me","slug":"the-idea-that-chose-me","category":"Thoughts","content":"Some people begin writing because they have something to say.\n\nI didn’t.\n\nI began because there was too much I couldn’t say. Because my chest felt like a closed book, pages pressed too tightly together. I began because silence had started to ache. Not loudly — but quietly, the way rust eats into metal over time.\n\nFor the longest time, I thought I wasn’t a writer. I wasn’t bold. I wasn’t loud. I didn’t have a voice that turned heads or a life that begged to be told.\n\nI was just… someone who felt too much.\nSomeone who paused mid-conversation to watch how sunlight fell on someone’s fingers.\nSomeone who stared at raindrops and wondered how they decided where to land.\nSomeone who always had a hundred thoughts in her head and no idea which ones to say out loud.\n\nThe first time I wrote something, really wrote, it didn’t feel like a choice.\nIt felt like an escape.\nA place I stumbled into by accident and never really left.\n\nIt wasn’t poetry.\nIt wasn’t a story.\nIt was just… an unfiltered sentence. One after another.\nAnd they didn’t ask for permission to exist.\n\nI wrote without worrying about grammar.\nI wrote without thinking of who would read it.\nI wrote because, somehow, the page felt more forgiving than people.\n\nAnd then, without meaning to, I wrote again.\nAnd again.\n\nWriting, for me, wasn’t about ambition.\nIt was survival.\n\nIt was the softest rebellion I knew. A way to be honest in a world that kept asking me to shrink.\n\nThere were days I couldn’t explain what I was feeling, not even to myself. But somehow, my fingers could.\n\nSomehow, the screen or paper or whatever surface I had — it listened. It didn’t interrupt. It didn’t need me to make sense. It didn’t need me to be okay.\n\nIt just stayed.\nAnd that was enough.\n\nThere’s this idea that writers are people who know what they’re doing. Who outline and structure and edit like their lives depend on it. And sure, maybe some do. But not all of us.\n\nSome of us write like we’re unraveling.\nLike we’re stitching our hearts back together with punctuation marks.\nLike we’re trying to translate something only we can feel but don’t yet understand.\n\nSometimes I write because I want to.\nMost times I write because I need to.\n\nThere’s a certain loneliness to being someone who feels everything a little too deeply.\nYou look at a tree and think of a person you lost.\nYou hear a line in a song and suddenly you’re fifteen again, heartbroken over something that never even began.\n\nWriting gave me a way to carry that weight. Not to fix it. Not to erase it. Just… to hold it without falling apart.\n\nPeople ask me now,\n“When did you know you were a writer?”\n\nAnd the honest answer is: I still don’t.\n\nI just know that when I didn’t write, I didn’t feel like myself.\nThat words became the mirror in which I finally saw myself clearly — messy, scattered, but real.\n\nI know that when I write, the noise quiets.\nThe overthinking pauses.\nAnd there’s a moment, even if it’s brief, where everything makes sense.\n\nNot in the world. But in me.\n\nNot every piece I write is beautiful. Not every thought deserves to be posted.\nBut I’ve learned to write anyway.\nTo write through the doubt, through the fear that it’s all pointless.\n\nBecause writing isn’t about proving something.\nIt’s about preserving something.\nA moment. A feeling. A version of yourself you don’t want to forget.\n\nThere are pieces I’ve written that no one has ever read.\nNot because they weren’t good. But because they were mine.\nBecause they were too soft, too raw, too me.\n\nAnd I think that’s okay.\nNot every word is meant to be shared.\nSome are just meant to save you, quietly, on nights you can’t be saved any other way.\n\nI don’t know what kind of writer I’ll be ten years from now.\nOr if I’ll still be writing at all.\n\nBut I know this: There are days I’ve felt invisible.\nAnd writing reminded me I exist.\n\nThere are nights I’ve felt unloved.\nAnd writing became the way I loved myself.\n\nThere are times I’ve wanted to disappear.\nAnd writing was the thread that kept me here.\n\nSo no —\nI didn’t choose writing.\n\nWriting chose me.\nWhen I had no words left to speak,\nIt gave me words to feel.\n\nAnd in this quiet, uncertain world —\nThat was enough.\n\nIf you’re reading this, and your heart feels heavy with untold stories — write them.\n\nNot for applause.\nNot for validation.\nBut because sometimes, the most powerful thing you can do…\n\nis let yourself be heard.\n\nEven if only by a blank page.","excerpt":"Some people begin writing because they have something to say.\n\nI didn’t.\n\nI began because there was too much I couldn’t say. Because my chest felt like a closed...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*PG1Oisox0gbQ50ISDUKEWw.png","tags":null,"readingTime":"5 min read","published":true,"publishedAt":"2025-06-25T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"Festival to Just Another day of Life","slug":"festival-to-just-another-day-of-life","category":"Thoughts","content":"There was a time when Onam felt like a day that lived outside the calendar.\nIt wasn’t just a date — it was a feeling. A shift in the air. A promise that, for one day, life would slow down enough for people to sit together, share a meal, and laugh a little more than usual.\n\nIn my childhood, we never had the kind of grand Onasadhya that you see in glossy ads — no twenty-six dishes served in perfect symmetry, no sprawling pookalams in the courtyard. Our celebration was quieter, smaller. And yet, in my memory, it feels so full.\n\nIt would begin in the kitchen — my grandmother moving between pots, her nighty brushing against her ankles, hair tied back, her hands moving with an ease that only comes from making the same dishes year after year. The smell of her sambhar would fill the whole house, that tangy tamarind and earthy dal blending with the crackle of banana chips frying in oil.\n\nThe living room would always be in a sort of happy chaos — someone slicing vegetables, someone washing the banana leaves, someone rushing to the shop because we forgot to buy coconut. I would sit on the edge of the sofa, trying to sneak a piece of pappadam before the sadhya, pretending to help but really just watching it all unfold.\n\nWe didn’t dress up in elaborate new clothes. Sometimes I didn’t even wear traditional attire. But there was still a small joy in waking up knowing it was Onam. There was still togetherness — sitting cross-legged on the floor with a banana leaf spread before me, the TV playing an old Malayalam movie in the background, my family talking between mouthfuls of rice, curries, and pickles.\n\nIt wasn’t perfect. Our family wasn’t one of those close, warm ones you read about. Sometimes there were sharp words in the air, quiet tensions under the surface. But for that one day, there was still a sort of unspoken truce. A pause.\n\nAnd then… as the years went by, Onam changed.\n\nI can’t pinpoint the exact year it stopped feeling like a festival. Maybe it was when I moved out. Maybe it was when the people who used to cook together stopped sharing the same roof. Or maybe it was me — maybe I grew up, and the magic faded without me noticing.\n\nThis year, I’m not with my family. I’m with people who are far kinder to me than some of my own ever were. People who make me feel seen, respected, understood. But still, when I woke up this morning, something in me felt… hollow.\n\nI missed my bed.\nI missed the walls of the house I knew like the back of my hand.\nI missed sitting on the floor with a banana leaf full of sadhya while the TV played in the background.\nI missed my grandmother’s sambhar — that exact shade of orange-brown, the way she’d ladle it over the rice, the little extra pinch of asafoetida she always swore made it better.\n\nAnd it’s strange, isn’t it? To miss a place where you weren’t always welcome. To miss the feeling of belonging in a home that didn’t always make space for you.\n\nMaybe that’s what festivals really are — not about the rituals or the size of the feast or the decorations, but about the familiarity they carry. The same way a certain smell can take you back years in an instant, festivals hold the imprint of who we were in all those moments.\n\nI think that’s why, even now, Onam feels different but not entirely gone. The celebration has just shifted. It’s no longer in the same walls, no longer in the same voices. But in the quiet of the morning, in the memory of sambhar and banana chips, in the ache of nostalgia that sits behind my ribs — there’s still a piece of it.\n\nMaybe as we grow older, we have to learn to find festivals in smaller things.\nMaybe they live in the smell of a spice mix, in the sound of laughter from a neighbour’s house, in a random phone call that makes you smile.\nAnd maybe, just maybe, Onam will always be with me — even if it looks nothing like it used to.","excerpt":"There was a time when Onam felt like a day that lived outside the calendar.\nIt wasn’t just a date — it was a feeling. A shift in the air. A promise that, for on...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*KScyztS0TjRDRCGPihsfSA.png","tags":null,"readingTime":"4 min read","published":true,"publishedAt":"2025-09-05T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"Some Doors stay Closed","slug":"some-doors-stay-closed","category":"Thoughts","content":"The day was going fine.\nNot extraordinary, not awful — just an easy, ordinary morning. The kind where you’re not waiting for anything dramatic to happen. I wasn’t thinking about him. I wasn’t thinking about the past. I was just moving through the day, as people do when they’ve made peace with where they are.\n\nAnd then noon happened.\n\nI saw his status.\n\nIt’s strange how something so small — a picture, a few words on a screen — can completely shift the air around you. Like you’re pulled out of the present and dropped back into a place you swore you’d never visit again. My thumb hovered over the chat box for longer than I’d like to admit. There wasn’t any overthinking. Just an instinct, or maybe an old habit, that made me type: Hey, how are you?\n\nIt started simply. We exchanged the kind of small talk two people share when they used to know each other well but have grown into strangers. How’s life? How are you doing? I answered. He answered. For a brief moment, it almost felt normal — like two people catching up without any history between them.\n\nBut the tone changed.\n\nHe asked if I was happy. And then, almost as if the words had been sitting on his tongue for months, he asked if we ever had a second chance.\n\nI stared at my screen. And for a few seconds, I didn’t even know what to feel. Because cheating was always the one thing I had promised myself I could never forgive. I believed that if someone crossed that line, there would be no way back. And yet, when it happened… I stayed.\n\nI told myself I could forget it. That maybe love was stronger than betrayal. That maybe, if I held on tightly enough, the wound would close and I’d stop bleeding.\n\nFor a month, I fought with myself. Every day, I woke up with this ache in my chest, telling myself I was strong enough to carry both my love and my pain. Every night, I’d lie in bed and feel the truth press down on me — that I was breaking, quietly, from the inside out.\n\nIt’s a special kind of exhaustion, loving someone who has hurt you that way. You smile during the day, you act like things are fine, but in the quiet moments, you’re just trying to convince yourself you can survive this. It’s like trying to drink from a cracked glass — no matter how carefully you hold it, the water keeps slipping through, and sooner or later, you’re left empty-handed.\n\nAnd eventually, I couldn’t do it anymore. I left.\nNot because I stopped loving him in that moment, but because love without trust is a slow form of self-destruction.\n\nSo when he asked me about second chances, it was like hearing an echo from a room I’d locked years ago. My stupid heart still cried while chatting with him. Not because I wanted him back — no. But because sometimes the past doesn’t knock politely. Sometimes it barges in, dragging with it all the feelings you thought you’d buried.\n\nAnd then came the last question.\nHe asked if we could meet before I left.\n\nIt would have been so easy to say yes.\nAnd if I’m honest, a part of me craved it. Craved seeing him, hearing his voice, reading the small shifts in his expressions that no photo or text can capture. I don’t even know why — maybe because some pieces of old love don’t dissolve completely, they just sink deeper where you can’t see them every day.\n\nTo tell myself it was just one meeting. Just one conversation. But I know myself — and I know the dangerous pull of old love. One smile, one shared memory, and my mind would start stitching together a fantasy that doesn’t exist anymore. And that road — the one that leads back to him — is a road I’ve walked before. It’s lined with fire, littered with the ashes of who I used to be. I barely made it out the first time.\n\nSo I refused.\n\nNot because I wanted to punish him. Not because I was trying to prove a point. But because I know how much it costs to rebuild yourself, and I’m not willing to pay that price again.\n\nSome doors stay closed.\nNot out of bitterness, but out of self-respect.\nNot because you didn’t love once, but because you finally learned to love yourself more.","excerpt":"The day was going fine.\nNot extraordinary, not awful — just an easy, ordinary morning. The kind where you’re not waiting for anything dramatic to happen. I wasn...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*lfoENUUxIMdh5vP-Dl2zPg.png","tags":null,"readingTime":"4 min read","published":true,"publishedAt":"2025-09-06T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"After the Breakup: Learning to Live with the Pieces of Yourself","slug":"after-the-breakup-learning-to-live-with-the-pieces-of-yourself","category":"Thoughts","content":"Breakups are strange, disorienting things. They feel like earthquakes that shake the very foundation of your emotional world, leaving everything cracked and unsettled. You don’t just lose a person; you lose the plans you had, the routines you’d built, the imaginary future that was quietly taking shape in your heart. And in that silence afterward, you’re left staring at yourself, asking questions you didn’t even know you’d need to ask: Who am I without them? Why do I feel so small? How do I stop thinking about what was?\n\nIt’s easy to tell yourself that time heals, that the ache will fade, that you’ll “move on” eventually. But the truth is, the days immediately following a breakup are less about moving on and more about holding on — holding on to memories, to the tiny details that made you smile or made you ache, to the echo of laughter in places that now feel empty. You may find yourself replaying conversations in your mind, dissecting every word, every pause, every message sent at three in the morning. You wonder why you stayed, why you fought for what was clearly unraveling, why your heart still believes in someone who doesn’t exist in the same way anymore.\n\nThe first days are often numb. You go through motions without feeling them, walking through familiar places while the world seems slightly out of focus. You sip coffee without tasting it, scroll through your phone without meaning to, answer messages automatically while your mind drifts into a fog of memories and “what ifs.” It’s exhausting, but it’s normal. Let yourself be exhausted. Let yourself feel empty. Let yourself wander through the space they used to occupy because that space, after all, was yours too.\n\nThen comes the wave of anger. Sometimes it hits gently; other times, it crashes over you like a storm. You remember the betrayals, the lies, the moments when they disappointed you, even in small ways. You’re furious — not just at them, but at yourself, at your own trust, at your own vulnerability. You may want to lash out, to send a message you’ll regret, to confront a past that no longer belongs to you. But remember: anger is not a weakness; it’s a signal. It’s your heart’s way of saying it needs to protect itself, to reclaim its power, to remind you that you are still here, still alive, still capable of feeling something — even if it hurts.\n\nAnd yet, beneath all that chaos, there’s a quieter, subtler transformation happening. Slowly, imperceptibly, you start rediscovering you. You notice the little things you’d forgotten: the warmth of sunlight on your skin, the taste of your favorite food, the rhythm of your own laughter. You remember dreams you’d shelved, ambitions you’d muted, hobbies you’d abandoned. In the shadow of losing someone else, you begin to find yourself again. It’s not a dramatic revelation — sometimes it’s as simple as walking down a street and noticing how light filters through leaves or writing in a journal that feels like it’s always been yours to fill.\n\nHealing is not linear. There are days when you feel strong, days when you feel weak, days when you laugh without guilt and days when tears sneak out in quiet corners. And that’s okay. What matters is that each day is a step forward, even if it feels like the same place. You are learning, in your own slow and jagged way, how to exist outside the orbit of someone else, how to breathe without waiting for their approval, how to love without needing someone else’s validation.\n\nEventually, you start to notice patterns. You stop comparing new experiences to old memories. You stop questioning every text, every glance, every silence. You reclaim your mornings, your evenings, your weekends. You find comfort in routines that don’t revolve around someone else. You make room in your heart not for someone new yet, but for you, fully and unapologetically. This is not about forgetting them. It’s about remembering yourself.\n\nBreakups are not failures. They are not proof that you loved poorly or that you were unworthy. They are, at their core, reminders of your capacity to feel, to invest, to hope, to care deeply. And surviving a breakup — truly surviving it — is a testament to your resilience, your strength, and your courage. It is proof that even when love leaves, life remains, and with life comes the chance to rebuild, to grow, and to become someone who can love again — perhaps differently, perhaps wiser, but always authentically.\n\nSo, if you are reading this in the quiet aftermath of a breakup, know this: it’s okay to grieve. It’s okay to rage. It’s okay to feel like you are unraveling. But also know this: you are not lost. You are not broken beyond repair. You are simply in the process of learning who you are without someone else beside you — and that, in itself, is a profound, beautiful kind of freedom.\n\n","excerpt":"Breakups are strange, disorienting things. They feel like earthquakes that shake the very foundation of your emotional world, leaving everything cracked and uns...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*YdC0vlQVr4BTjk1djj7vIQ.png","tags":null,"readingTime":"5 min read","published":true,"publishedAt":"2025-09-06T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"The Burden of Being Unseen","slug":"the-burden-of-being-unseen","category":"Thoughts","content":"I am tired in ways that don’t have simple names.\nIt’s not the kind of tired that a nap fixes, not the kind that a night of good sleep erases. It is the kind of tired that lives in the bones, in the hollow spaces between heartbeats, in the corners of my mind where silence echoes too loudly.\n\nI carry a heaviness that no one else seems to notice. Maybe it is because I have become skilled at hiding it, smiling when I am expected to, nodding at the right moments, performing the ordinary rituals of being alive. Or maybe it is because I am simply invisible to the people I wish could see me most.\n\nMy life feels like a rehearsal of someone else’s script. I take each step by listening to others, doing what they ask, what they expect, what they demand. And in the process, I lose the sound of my own voice. My own wishes, my own dreams — they remain unopened letters, never answered, never even acknowledged.\n\nI try to pour my ache into words. Writing is the only place where I can loosen the knots inside me, where I can let out what I cannot say aloud. But even there, I feel unseen. People read my writings and say they relate. They like the lines because they see themselves in the pain. But they do not see me. They never do.Sometimes I imagine my absence as a quiet thing, a vanishing that leaves no mark. No one crying out, no one pausing in disbelief. Just life moving on, as though I was never here. The thought terrifies me, and yet in some strange way, it comforts me too. To slip away without noise, to be free from this constant weight — sometimes I wish for nothing more.\n\nAnd yet, I am still here. Still breathing, still waiting.\nBecause beneath all of that exhaustion, beneath the hopeless prayers, there is still a fragile wish that refuses to die: the wish for a shoulder to lean on. Arms that will hold me without asking me to explain. A place where I can put down my fears and my burdens without worrying if I will be judged.\n\nI long for that — more than I long for anything else.\nTo be seen, truly seen. To be known, not as someone’s duty or someone’s reflection, but as myself. To have someone look at me and say, “I am here. Stay. You are not alone.”\n\nBut when I pray, my prayers fracture into two voices.\nOne voice asks God to take this life away, to end this endless cycle of invisibility.\nThe other voice whispers for a reason to stay, for hands strong enough to hold me steady when I can’t hold myself.I don’t know which prayer will be answered first.\nAnd maybe that is the hardest part — to live in the waiting, in the in-between, never certain if I am moving toward an ending or a beginning.\n\nBut tonight, like every night, I write another letter you will never read.\nBecause even if my voice remains unheard, even if my pain remains unseen, I still need to let it out into the world. I still need to believe that somewhere, in the vast silence, these words matter.\n\nEven if I don’t.","excerpt":"I am tired in ways that don’t have simple names.\nIt’s not the kind of tired that a nap fixes, not the kind that a night of good sleep erases. It is the kind of...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*-GBOItBM33ovhg_GNeINkw.png","tags":null,"readingTime":"3 min read","published":true,"publishedAt":"2025-09-20T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"When the Moon Looked Lonely","slug":"when-the-moon-looked-lonely","category":"Thoughts","content":"There is something about night travel that makes silence heavier. The bus hums its low, steady song, people lean into sleep, and the outside world slips past in shadows. Streetlights flicker, villages turn into blurs, and conversations fade into snores. The air feels thicker, the darkness deeper, and the quiet presses against your chest in a way daylight never does. That’s when your thoughts get louder — when you’re no longer distracted by the day’s noise, when the heart starts speaking in whispers it has kept buried.\n\nLast night, as I sat by the window of a bus carrying me back home, I felt that weight of silence settle around me. I rested my forehead lightly against the cool glass, the vibrations of the engine underneath almost meditative, and then, in the dark stretch of sky, I saw the moon.\n\nNot the glorious, cinematic moon people fall in love under. Not the silver disc poets glorify as eternal beauty. This moon felt different — raw, stripped, and achingly solitary. It hung alone, pale and fragile, as if it was waiting for someone who never came. Its light was quiet, almost hesitant, spilling softly over rooftops and fields below, touching everything without being touched back.\n\nI stared at it longer than I intended to. Somewhere between the passing trees, the rhythmic thrum of the engine, and the soft snores from other passengers, I realized: maybe the reason I saw loneliness in the moon was because I was carrying a bit of it myself. I thought of all the quiet hours, the invisible moments, the times I had moved through crowds feeling hollow, untouched by anyone’s notice. And there it was, reflected back at me — a companion in its own stillness.\n\nThere is a strange comfort in realizing that even the brightest things can feel alone. The moon glows not because it is surrounded, but because it has no choice. Its light comes from solitude. It stands apart, yet it cannot stop shining. Isn’t that how many of us move through life sometimes? We keep showing up. We keep glowing in our own quiet way, even when the world doesn’t pause to notice. We exist in crowds yet carry solitude inside us.\n\nAnd yet, last night, I couldn’t stop thinking about how the moon — lonely as it looked — was still being seen. From bus windows, balconies, and empty streets, countless eyes were probably resting on it. Perhaps that is its unspoken purpose: not to erase loneliness, but to share it.\n\nMaybe what we see in the moon depends on what we carry within. Some see romance, some see beauty, some see mystery. Last night, I saw solitude. And that felt like a mirror. I thought of all the nights I had lain awake staring at a ceiling, wondering if anyone else could see the quiet storms inside me. I thought of all the days I had forced smiles onto a face that felt far too heavy, and how silence had often been the only companion I could trust. That’s what the moon reminded me of — a quiet presence that keeps shining even when it feels unbearably alone.\n\nBut here’s the thing: even in that aloneness, the moon is never truly abandoned. People notice. Travelers, dreamers, night-shifters, and wanderers like me. Someone, somewhere, is always looking up, always drawing strength, always whispering a thought in its direction. And maybe that’s enough — to know that your existence, your light, no matter how lonely it feels, can be seen by others in ways you cannot measure.\n\nAs the bus rolled on, I found myself oddly comforted by this. Maybe loneliness isn’t always about the absence of people. Maybe it’s about the absence of being understood, of being noticed. But the truth is — sometimes we are noticed, even in ways we can’t see.\n\nBy the time the bus neared my stop, I felt lighter. The moon still hung in its quiet solitude, but it didn’t feel so unbearably alone anymore. It felt like a reminder — that even in our darkest hours, even when we feel like we’re carrying light no one sees, someone, somewhere, might be finding comfort in our glow.\n\nYou are never as invisible as you think. Loneliness may shape your light, but it doesn’t diminish it. Sometimes, what feels like unbearable solitude… is simply the moon’s way of reminding you — you’re not alone in feeling alone. And maybe, if we look long enough, we realize that in carrying our quiet, in letting our light shine even when it’s just for ourselves, we are already part of something greater than ourselves: a world quietly watching, quietly noticing, quietly glowing back.","excerpt":"There is something about night travel that makes silence heavier. The bus hums its low, steady song, people lean into sleep, and the outside world slips past in...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*mf9ad8n4TWX4ce_V3DbdXQ.png","tags":null,"readingTime":"4 min read","published":true,"publishedAt":"2025-09-28T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"The Child Who No One Held","slug":"the-child-who-no-one-held","category":"Thoughts","content":"There’s a moment in every unloved childhood when the child stops asking.\nNot out of strength — but out of quiet resignation.\nNot because they stop needing love, but because they finally understand that love, in their home, is a fragile thing. It comes and goes like weather. You can’t rely on it. You can’t predict it. You just learn to adapt to its absence.\n\nIt’s strange, how young the heart is when it begins to understand rejection.\nYou start small — with questions like “Did I do something wrong?” or “Will they be less angry if I stay quiet?” You try harder, speak softer, learn to become invisible in all the right ways. You think if you make yourself easier to love, you’ll finally earn it. But you never do.\n\nSo, you shrink — not all at once, but gradually.\nYou learn to laugh when they laugh, to go still when they’re silent, to anticipate moods before words are spoken. You become fluent in the language of avoidance, reading disappointment like it’s written on the walls. You become careful — painfully, heartbreakingly careful.\n\nI remember being that child.\nI remember tracing the patterns on the floor tiles, waiting for voices to soften. I remember pretending to sleep when the house grew loud. I remember wanting someone to notice the way my hands trembled, or the way I’d go quiet when something hurt. But no one did. They saw the silence as obedience. They mistook stillness for strength.\n\nAnd so I stopped asking.\nFor affection. For comfort. For love.\nNot because I didn’t want it — but because wanting became too heavy.\n\nAs a child, you don’t understand emotional neglect as neglect. You just think you’re unworthy. You think love is something you have to earn by being good enough — a reward for rightness, never a right itself. You start measuring your worth in grades, in chores done right, in how little space you take up. You learn that love is something that has to be proven, not something that simply is.\n\nAnd that belief — it doesn’t fade easily.\nIt follows you into adulthood, disguised as independence. You become the friend who never asks for help, the lover who says “it’s fine” even when it isn’t, the person who keeps loving people that make you feel small because small is what you learned to be.\n\nYou tell yourself you’re strong, but deep down you know:\nstrength was never a choice — it was survival.\n\nEven now, years later, I still feel that child within me. She’s there when I hesitate to say what hurts. She’s there when I flinch at kindness, wondering if it’s real. She’s there in every relationship I sabotage because comfort feels unfamiliar, and love feels like a debt I can’t repay.\n\nI’ve spent so much of my life trying to unlearn her fear.\nTrying to tell her that it’s safe now. That we don’t have to be small anymore.\nThat we can take up space.\nThat silence isn’t protection ,it’s a wound we kept mistaking for peace.\n\nBut healing isn’t gentle.\nIt’s remembering. It’s revisiting every closed door and forgiving the child who knocked until her knuckles bled. It’s looking at the people who should’ve loved you and accepting that they simply couldn’t. Not because you were unlovable, but because they were unloved too and never learned how to give what they didn’t receive.\n\nI don’t know when exactly I stopped hating them. Maybe the anger melted when I realized they were just children in older bodies, carrying their own brokenness. But forgiveness doesn’t erase the ache. It just makes space for understanding.\n\nAnd in that understanding, I find myself reaching backward ,toward that small version of me who waited for someone to notice her. I picture her by the window, staring at the light spilling through the curtains. I imagine sitting beside her, holding her hand, whispering what no one else ever did:\n\nYou did nothing wrong. You were never too much. You were never unworthy. You just grew around people who didn’t know how to see softness without breaking it.\n\nSometimes I think healing isn’t about moving on.\nIt’s about moving closer — to the child you left behind, to the feelings you buried so deeply you forgot how to name them. It’s about returning, not escaping.\n\nI’m still learning how to do that — how to let love in without fear, how to rest without guilt, how to need without shame. It’s slow, and it’s messy. But every time I let someone hold me without earning it, I feel her breathe a little easier.\n\nMaybe that’s all healing really is , teaching the child within you that love was never supposed to hurt.\nThat you were always worthy, even when no one said so.\nThat you can stop waiting now. You’re home.","excerpt":"There’s a moment in every unloved childhood when the child stops asking.\nNot out of strength — but out of quiet resignation.\nNot because they stop needing love,...","featuredImage":"https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=1200&auto=format&fit=crop","tags":null,"readingTime":"5 min read","published":true,"publishedAt":"2025-10-11T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"Why What We Suppress Doesn’t Disappear","slug":"why-what-we-suppress-doesnt-disappear","category":"Thoughts","content":"We grow up hearing that emotions make us weak.\nThat tears are a sign of fragility, that silence is strength, and that smiling through the ache is the noble thing to do. Somewhere along the way, we learn to hold our feelings like secrets, tucked neatly beneath polite smiles and tired laughter.\n\nWe become masters of pretending.\nWe laugh when something hurts, say “I’m fine” when we’re breaking inside, and build walls that look like composure. People call it maturity. They call it grace. But what it really is, sometimes, is fear — fear of being misunderstood, dismissed, or labeled “too much.”\n\nYet emotions aren’t burdens to be hidden. They are messages. Raw, real, and deeply human. When we silence them, they don’t fade. They echo within us, reshaping our thoughts and behaviours in ways we barely notice. The anger we bury becomes sharpness in our words. The grief we avoid becomes a quiet fatigue that follows us around. The love we never expressed turns into restlessness — a longing we can’t name.\n\nEmotions demand to be felt. They might whisper at first . A lump in the throat, a heaviness in the chest, a sudden wave of nostalgia. Ignore them long enough, and they begin to roar in different forms — sleepless nights, unexplained irritation, the strange emptiness that settles even when everything seems “fine.”\n\nWe call it stress. We call it burnout. But often, it’s unprocessed emotion wearing a different mask.\n\nMoving on, we’re told, means leaving the past behind. But true healing isn’t about erasing what happened; it’s about feeling it fully, learning from it, and allowing it to transform us. Pain, when acknowledged, becomes softer. It teaches us empathy. It deepens our understanding of ourselves and others. But pain, when ignored, becomes armor — heavy, rigid, and suffocating.\n\nThere’s a quiet strength in vulnerability , in saying, “Yes, this hurts, and I’m going to let myself feel it.” It’s not dramatic. It’s not weak. It’s simply human.\nYou can cry and still be strong.\nYou can pause and still be growing.\nYou can fall apart and still be healing.\n\nWhen you finally allow yourself to feel, you’ll realize emotions aren’t enemies , they are reminders. They remind you that your heart is still capable of caring, that your wounds haven’t numbed your soul completely, and that even in your deepest sadness, you are still alive.\n\nThe world often glorifies indifference “Don’t take things personally,” “Don’t get too attached,” “Don’t let emotions control you.” But the truth is, our emotions are what make life vivid. They color our memories, shape our connections, and give meaning to everything we experience. What is love without vulnerability? What is joy without knowing what sorrow feels like?\n\nWe can’t selectively numb emotions.\nWhen we shut out pain, we also shut out wonder, compassion, and joy.\nWhen we refuse to feel sadness, we lose depth — the very tenderness that allows us to feel alive.\n\nSo, feel it all. The ache. The confusion. The quiet hope that still flickers in the dark. Sit with it. Listen to it. Let it move through you like a wave that comes not to drown you, but to cleanse what you’ve been holding for too long.\n\nStrength isn’t about silence. It’s about presence — the ability to stay with yourself when the storm rises inside. Because emotions, when felt, free us. But when ignored, they silently chain us to what we tried to escape.\n\nAnd one day, when you finally allow yourself to feel, you’ll realize — the weight you’ve been carrying was never the emotion itself. It was the resistance to it.\n\nLet it move through you. What you feel isn’t your weakness , it’s your becoming.\n\n-Alsa. S","excerpt":"We grow up hearing that emotions make us weak.\nThat tears are a sign of fragility, that silence is strength, and that smiling through the ache is the noble thin...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*Yg5-doMwAGmZkBhFAqf_ew.png","tags":null,"readingTime":"4 min read","published":true,"publishedAt":"2025-11-08T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"The Version of You That the World Never Gets to See","slug":"the-version-of-you-that-the-world-never-gets-to-see","category":"Thoughts","content":"There is a version of you that doesn’t walk around in daylight.\n\nIt doesn’t show up in photographs, doesn’t appear in group conversations, doesn’t know how to speak when too many eyes are watching. It stays beneath the surface like a shy heartbeat — steady, alive, but always hidden behind the practiced version of you that the world has learned to recognize.\n\nMost people will only ever know the edited you. The one who remembers to smile at the right time, nod in agreement, pretend to be steady, pretend to be fine. The one who carries responsibilities, expectations, memories, and fears as if they were simple, lightweight things.\n\nBut there is another you.\nA quieter, more fragile, more honest you.\n\nThis version doesn’t pretend.\nThis version isn’t polished.\nThis version doesn’t know how to hide the trembling in its voice.\n\nAnd somehow, this hidden version is the truest one.\n\nThe quiet you that aches differently\nThere is a you who listens to songs alone and feels every lyric like it was written for your bones. A you who thinks too much at 1 a.m. when the world goes silent and the weight of your own thoughts becomes impossible to escape.\n\nA you who still carries the softness you don’t show in daylight.\nA you who still hopes, even after everything.\nA you who tries, even when tired.\nA you who believes in love, even after being disappointed by it.\n\nThis private version of you aches in ways no one will understand because no one else has lived your life from the inside.\n\nThe brave you that no one notices\nPeople often mistake loudness for courage. But the hidden version of you — the one who keeps going despite fear, heartbreak, and uncertainty — is the bravest of them all.\n\nYou wake up every day and choose to continue.\nYou choose to show up even when you could hide.\nYou choose to hope even when nothing feels certain.\n\nNo one applauds these small, quiet acts of courage.\nBut they shape you more deeply than any public victory ever could.\n\nThe world celebrates the visible.\nBut your strength has always been silent.\n\nThe loving you that loves in ways no one sees\nWe all have a version of ourselves that loves differently in private. The way you care for people in your heart, the way you pray for them silently, the way you forgive quietly without letting anyone know — these things reveal a tenderness that rarely gets acknowledged.\n\nMaybe you love people who will never know it.\nMaybe you carry memories you never speak about.\nMaybe your loyalty goes deeper than your words ever show.\n\nThere is beauty in that kind of love — the kind the world doesn’t get to witness but still shapes who you are.\n\nThe version of you that is still becoming\nThere’s a tension between who you are, who you show, and who you are becoming.\n\nGrowth is not linear. Healing is not loud. Becoming yourself is not a moment — it is a slow process of peeling away every expectation, every fear, every version of you that was built to please someone else.\n\nYou are still growing into a self that feels like home.\n\nBut becoming requires solitude. And solitude requires meeting the version of yourself you’ve been avoiding.\n\nThe you who admits:\n“I am not okay.”\n“I am tired.”\n“I want something different.”\n“I deserve more.”\n“I’m afraid of losing people.”\n“I’m afraid of losing myself.”\n\nHonesty with yourself is one of the most difficult forms of courage. But it is also the one that frees you.\n\nThe world will never know the full story — but you should\nPeople will see your choices, not your battles.\nYour actions, not your reasoning.\nYour face, not your fears.\n\nNo one will ever see the full map of everything you had to walk through to become who you are today.\n\nBut you should.\n\nBecause you are the only one who can look at the hidden version of yourself and say:\n\n“You made it through things no one knows about.\nYou carried emotions no one understood.\nYou fought battles no one witnessed.\nAnd still, here you are.”\n\nYour existence is not small.\nYour softness is not weakness.\nYour hidden self is not something to be ashamed of.\n\nIt is your unfiltered truth — the part of you that deserves your love the most.\n\nYou don’t need the world to see you fully — but you need to see yourself\nThe version of you that the world never sees is not the leftover version.\nIt is not the weaker one.\nIt is not the unimportant one.\n\nIt is the real one.\nThe brave one.\nThe one who has survived every chapter of your life.\n\nAnd maybe… just maybe… the goal isn’t to reveal it to the world.\n\nMaybe the goal is to finally meet that version of yourself without fear, without judgement, without apology — and learn to live a life that honours who you truly are, not who you pretend to be.\n\nBecause the world may never know this side of you.\nBut you do.\nAnd that is enough.","excerpt":"There is a version of you that doesn’t walk around in daylight.\n\nIt doesn’t show up in photographs, doesn’t appear in group conversations, doesn’t know how to s...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*tGtIfwTCNSgTgw9sHFntGg.png","tags":null,"readingTime":"5 min read","published":true,"publishedAt":"2025-12-09T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"The Thin Line that keeps me Here","slug":"the-thin-line-that-keeps-me-here","category":"Thoughts","content":"There are days when my life feels normal.\nI wake up, I do what I have to do, I speak when needed, I smile when expected.\nFrom the outside, nothing looks out of place.\n\nBut inside me, it’s different.\nInside, it feels like I am walking on a very thin line —\na line between holding on and letting go,\nbetween wanting to stay and wanting everything to stop for a while.\n\nIt’s not always about wanting to die.\nIt’s more about wanting a pause.\nA break.\nA moment where my mind doesn’t feel so heavy,\nwhere I don’t feel like I’m carrying so much alone.\n\nThis thin line… it’s strange.\nSome days it feels strong.\nOther days it feels like a thread that could snap with one more thought.\n\nBut somehow, I’m still here.\n\nLife and death don’t always feel far apart.\n\nPeople usually talk like life is bright and death is dark.\nLike they are opposites.\nLike one is full and the other is empty.\n\nBut to me, they sometimes feel like two sides of the same door.\nVery close.\nAlmost touching.\n\nLife is loud.\nLife is busy.\nLife asks for a lot.\nIt wants effort, strength, patience, decisions, mistakes, forgiveness, and trust.\n\nDeath, on the other hand, appears quiet.\nStill.\nLike a place where the noise in my head would finally stop.\n\nI don’t want it.\nBut I can feel it sometimes, like a distant echo.\n\nAnd yet…\nthere is something that keeps pulling me back to life,\nsomething that says, “Not today. Not now.”\n\nA thin line.\nFragile, but somehow still there.\n\nThis line is made of small things.\n\nPeople think you need a big reason to stay alive.\nA grand purpose.\nA strong dream.\nA huge responsibility.\n\nBut in reality, most of us stay because of small things.\n\nA text from someone I didn’t expect.\nA memory that still makes me smile.\nThe way the sky looks on a quiet evening.\nA promise I made to myself long ago.\nA person I don’t want to hurt.\nA future I’m not ready to give up on.\nA “maybe” that hasn’t left me yet.\n\nIt’s not always hope.\nSometimes it’s just the thought,\n“I will wait one more day.”\n\nThat thought has saved me more times than I admit.\n\nWalking this line is lonely, even when people are around.\n\nOn the outside, I look fine.\nI talk normally.\nI act like things are okay.\nI laugh when I’m expected to laugh.\n\nPeople assume I’m stable.\nPeople think I’m quiet because I’m calm.\nPeople think I don’t feel much.\n\nBut inside, I’m constantly balancing myself.\nTrying not to fall into thoughts that scares me.\nTrying to understand feelings that come out of nowhere.\nTrying to breathe when my chest feels tight with emotions I can’t name.\n\nIt’s not attention.\nIt’s not weakness.\nIt’s just the truth I don’t say out loud.\n\nMost people wouldn’t understand anyway.\n\nBut here’s something I forget: staying is also a choice.\n\nEvery morning I get out of bed, I’m choosing life.\nEvery time I take a deep breath when things feel heavy, I’m choosing life.\nEvery time I say, “I’ll try again tomorrow,”\nI am choosing life.\n\nEven when I feel tired.\nEven when I feel confused.\nEven when the line feels too thin to stand on.\n\nI’m still here. Still walking. Still holding on.\n\nThat is not weakness.\nThat is strength — a quiet kind of strength that nobody sees.\n\nThe line may be thin, but I am not.\n\nI forget this often, but I am more than my dark moments.\nI am more than heavy thoughts.\nI am more than the days when life feels too much.\n\nI carry stories.I carry memories. I carry possibilities. I carry pieces of a future I haven’t lived yet.\n\nMaybe one day, the line will not feel so narrow.Maybe life will feel lighter. Maybe I will trust myself more. Maybe I will look back at this version of me and feel proud that I stayed.\n\nMaybe the thin line I am walking today will become the ground I stand on tomorrow.\n\nFor now, I am holding on.\n\nAnd that is enough.\n\nI don’t need to have everything figured out. I don’t need to feel strong every day. I just need to keep choosing life, even in the smallest ways.\n\nOne breath. One hour. One day at a time.\n\nThe line is thin. But I’m still here. Still walking. Still trying.\n\nAnd that… truly is enough.","excerpt":"There are days when my life feels normal.\nI wake up, I do what I have to do, I speak when needed, I smile when expected.\nFrom the outside, nothing looks out of...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*DESsq9M0sAtrp2zO4UXqjA.png","tags":null,"readingTime":"4 min read","published":true,"publishedAt":"2025-12-11T00:00:00.000Z","views":0} });
+  await prisma.blogPost.create({ data: {"title":"Lonely in a room full of love","slug":"lonely-in-a-room-full-of-love","category":"Thoughts","content":"There’s a strange kind of loneliness that doesn’t come from being alone.\n\nIt comes from being surrounded by laughter, conversations, familiar faces and still feeling like you’re standing outside the glass, watching life happen without you.\n\nIt’s confusing. Even guilt-inducing because how can you feel lonely when you’re with people who love you?\n\nYet it happens more often than we admit.\n\nThis kind of loneliness is quiet.\n\nYou smile at the right moments. You respond when spoken to.\nYou sit in circles, share meals, attend gatherings. From the outside, you look included. But inside, there’s a distance no one seems to see.\n\nYou’re present but not felt.\nHeard but not understood.\n\nAnd that difference changes everything.\n\nLove is powerful.\n\nBut understanding is intimate.\n\nYou can be deeply loved by your people, family, friends, partner and still feel emotionally untranslated.\n\nThey care for you.\nThey check on you.\nThey want you around.\n\nYet they don’t notice the pauses in your voice…The heaviness behind your humor…The thoughts you swallow mid-sentence. Being loved comforts the heart. Being understood relieves it.\n\nLoneliness begins in the space between those two.\n\nIronically, we often perform the most around the people closest to us.\n\nYou become the strong one, the listener, the funny one, the dependable one.\n\nYou play your role so well that no one thinks to ask if you’re tired of carrying it.\n\nSo you keep the mask on.\n\nBecause removing it feels inconvenient… dramatic… unnecessary.\n\nBut the longer you wear a version of yourself, the more invisible the real you starts to feel.\n\nSometimes loneliness isn’t created by others but by our own restraint.\n\nYou want to speak. But thoughts interrupt: “They already have so much going on”, “I don’t want to ruin the vibe”, “They won’t understand anyway.”\n\nSo you say “I’m fine.” And the conversation moves on.\n\nSilence, repeated enough times, builds emotional distance — even in the closest relationships.\n\nAnother quiet trigger of crowd-loneliness is emotional mismatch.\n\nYou might be breaking inside on a day everyone else is celebrating.\n\nYou sit among joy while carrying grief. You laugh while managing anxiety. You participate but don’t resonate.\n\nIt creates a strange guilt: Why can’t I just feel what everyone else is feeling?\n\nSo you withdraw internally while staying physically present.\n\nYou talk all day yet feel untouched.\n\nBecause not all conversations connect.\n\nYou discuss plans, work, memes, gossip, daily routines\n\nBut not fears, not wounds, not the questions that keep you awake at night.\n\nNoise replaces intimacy.\n\nAnd the heart starves quietly in crowded rooms.\n\nWe often misunderstand loneliness. It isn’t always physical isolation. It’s emotional disconnection.\n\nYou can sit alone and feel peaceful yet sit in a group and feel invisible.\n\nBecause what humans crave isn’t proximity. It’s mirroring.\n\nSomeone who reflects your inner world back to you who hears what you don’t say…who understands without translation.\n\nThe body counts people. The heart counts resonance. This loneliness, painful as it is, carries awareness.\n\nIt teaches you:\n\nThe difference between company and connection\n2. The value of emotional safety.\n\n3. The rarity of being truly seen.\n\nIt pushes you to seek depth over noise…\nPresence over performance..\n\nUnderstanding over attention.\n\nSo yes. You can be surrounded by people who love you and still feel lonely.\n\nNot because they don’t care.\nBut because parts of you remain untouched… unspoken… unfelt.\n\nLoneliness, then, isn’t the absence of people.\n\nIt’s the absence of being understood.\n\nAnd sometimes, the cure isn’t more company.\n\nJust one person who sees you without needing an explanation.","excerpt":"There’s a strange kind of loneliness that doesn’t come from being alone.\n\nIt comes from being surrounded by laughter, conversations, familiar faces and still fe...","featuredImage":"https://miro.medium.com/v2/resize:fit:1100/format:webp/1*86T-xFjWCRc8IPcDQS1vlA.png","tags":null,"readingTime":"3 min read","published":true,"publishedAt":"2026-02-17T00:00:00.000Z","views":1} });
 
   // 6. Seed Site Settings
-  await prisma.siteSetting.createMany({
-    data: [
-      { key: 'author_name', value: 'Alsa.S' },
-      { key: 'author_tagline', value: 'Author · Poet · Storyteller' },
-      { key: 'hero_quote', value: 'Some stories are meant to be read. Others are meant to be felt.' },
-      { key: 'social_instagram', value: 'https://instagram.com/alsas.author' },
-      { key: 'social_twitter', value: 'https://x.com/alsas_writes' },
-      { key: 'social_goodreads', value: 'https://goodreads.com/author/alsas' },
-      { key: 'social_email', value: 'correspondence@alsas.com' },
-    ],
-  });
+  await prisma.siteSetting.create({ data: {"key":"author_name","value":"Alsa.S"} });
+  await prisma.siteSetting.create({ data: {"key":"author_tagline","value":"Author · Poet · Storyteller"} });
+  await prisma.siteSetting.create({ data: {"key":"hero_quote","value":"Some stories are meant to be read. Others are meant to be felt."} });
+  await prisma.siteSetting.create({ data: {"key":"social_instagram","value":"https://instagram.com/alsas.author"} });
+  await prisma.siteSetting.create({ data: {"key":"social_twitter","value":"https://x.com/alsas_writes"} });
+  await prisma.siteSetting.create({ data: {"key":"social_goodreads","value":"https://goodreads.com/author/alsas"} });
+  await prisma.siteSetting.create({ data: {"key":"social_email","value":"correspondence@alsas.com"} });
+  await prisma.siteSetting.create({ data: {"key":"about_page_data","value":"{\"portraitImage\":\"https://www.image2url.com/r2/default/images/1790010406447-4c63b69b-fb5c-4472-af6f-e3ae8d1dba30.webp\",\"portraitCaption\":\"Alsa.S \",\"tagline\":\"Author · Poet\",\"heading\":\"About Alsa.S\",\"bioParagraph1\":\"Alsa.S is an author, poet, and storyteller whose work dwells in the quiet thresholds between departure and return, love and silence, mortal grief and luminous wonder.\",\"bioParagraph2\":\"\",\"bioParagraph3\":\"\",\"philosophy\":[{\"title\":\"Silence as Cadence\",\"description\":\"The spaces between lines hold as much narrative gravity as the phrases themselves. To write well is to know when to let the silence breathe.\"},{\"title\":\"Physicality of Language\",\"description\":\"Sentences must carry scent, weight, and temperature. Cold sea salt on wool, wet ashes in stone cups, amber lamplight reflecting in dark tea.\"},{\"title\":\"Uncompromising Empathy\",\"description\":\"Characters are never instruments of convenience; they are sovereign humans wrestling with their own contradictions, longing, and forgiveness.\"}],\"timeline\":[{\"year\":\"2016-Present\",\"title\":\"The Solitary Notebooks\",\"description\":\"Began writing poetic fragments and early drafts of coastal short stories during late nocturnal hours, exploring human memory and sacred distance.\"},{\"year\":\"2025\",\"title\":\"Chronicles of Heart Released\",\"description\":\"Publication of 'Chronicles of Heart: A Love’s Tapestry' with Notion Press, receiving widespread appreciation for its spare, crystalline verses on devotion.\"},{\"year\":\"2025-2026\",\"title\":\"Like the Moon to the Tide\",\"description\":\"Debut literary romance novel Work-in-Progress\"},{\"year\":\"2025–2026\",\"title\":\"Do Not Get Off\",\"description\":\"Deepening into worldbuilding for the claustrophobic thriller novel  'Do Not Get Off'.\"}],\"beyondWriting\":\"When not immersed in manuscripts or binding collector volumes, Alsa.S explores her career as a final year B.Tech student in Computer Science discipline. \",\"ctaHeading\":\"Step Into the Stories\",\"ctaSubheading\":\"Explore the catalog or reach out for inquiries, readings, and correspondence.\"}"} });
+  await prisma.siteSetting.create({ data: {"key":"contact_page_data","value":"{\"badge\":\"Correspondence\",\"heading\":\"Reach the Author\",\"quote\":\"“Letters are slow conversations. Every note from a reader is read with gratitude and care.”\",\"rightsTitle\":\"Professional & Rights Inquiries\",\"rightsDescription\":\"For dramatic rights, foreign translations, anthology permissions, or academic event invitations, please direct formal queries to:\",\"rightsAgencyLabel\":\"Author herself\",\"rightsEmail\":\"alsawritesofus@gmail.com\",\"rightsAgencyDetails\":\"Alsa.S\",\"directMailTitle\":\"Direct Mail\",\"directMailDescription\":\"Readers wishing to write directly can address:\",\"directEmail\":\"alsawritesofus@gmail.com\",\"socialTitle\":\"Digital Sanctuaries\",\"socialDescription\":\"Follow along for visual excerpts, reading recommendations, and tour announcements.\",\"instagramUrl\":\"https://www.instagram.com/mysteries_in_life_?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==\",\"instagramHandle\":\"@mysteries_in_life_ on Instagram\",\"twitterUrl\":\"\",\"twitterHandle\":\"\",\"goodreadsUrl\":\"\",\"goodreadsHandle\":\"\"}"} });
+  await prisma.siteSetting.create({ data: {"key":"smtp_settings","value":"{\"host\":\"smtp.gmail.com\",\"port\":465,\"secure\":true,\"user\":\"\",\"pass\":\"sample-test-password\",\"fromName\":\"Alsa.S\",\"fromEmail\":\"\"}"} });
 
-  // 7. Seed sample subscribers and contact messages
-  await prisma.newsletterSubscriber.createMany({
-    data: [
-      { email: 'elena.vance@literaryjournal.org' },
-      { email: 'reader.marcus@gmail.com' },
-      { email: 'sophia.books@outlook.com' },
-    ],
-  });
-
-  await prisma.contactMessage.createMany({
-    data: [
-      {
-        name: 'Clara Oswald',
-        email: 'clara@oxfordlitfest.org',
-        subject: 'Keynote Invitation: Autumn Literary Colloquium 2026',
-        message: 'Dear Alsa.S, We would be deeply honored to host you as our evening keynote speaker on the art of literary fiction and poetry...',
-        isRead: false,
-      },
-      {
-        name: 'Julian Thorne',
-        email: 'jthorne@blackwoodbooks.co.uk',
-        subject: 'Proof copies for The Devourer’s Crown',
-        message: 'The collector edition foil proofs have arrived from the Italian bindery. The typography on the spine came out breathtakingly sharp.',
-        isRead: true,
-      },
-    ],
-  });
-
-  console.log('Database seeded successfully with rich literary data!');
+  console.log('Database seeded successfully with all your latest author content!');
 }
 
 main()

@@ -35,21 +35,22 @@ export const DEFAULT_CONTACT_DATA: ContactPageData = {
   rightsTitle: 'Professional & Rights Inquiries',
   rightsDescription:
     'For dramatic rights, foreign translations, anthology permissions, or academic event invitations, please direct formal queries to:',
-  rightsAgencyLabel: 'Literary Representation:',
-  rightsEmail: 'rights@alsas.com',
-  rightsAgencyDetails: 'c/o Veritas & Quill Literary Agency',
+  rightsAgencyLabel: 'Author herself',
+  rightsEmail: 'alsawritesofus@gmail.com',
+  rightsAgencyDetails: 'Alsa.S',
 
   directMailTitle: 'Direct Mail',
   directMailDescription: 'Readers wishing to write directly can address:',
-  directEmail: 'correspondence@alsas.com',
+  directEmail: 'alsawritesofus@gmail.com',
 
   socialTitle: 'Digital Sanctuaries',
   socialDescription:
     'Follow along for visual excerpts, reading recommendations, and tour announcements.',
-  instagramUrl: 'https://instagram.com',
-  instagramHandle: '@alsas.author on Instagram',
-  twitterUrl: 'https://x.com',
-  twitterHandle: '@alsas_writes on X',
-  goodreadsUrl: 'https://goodreads.com',
-  goodreadsHandle: 'Alsa.S on Goodreads',
+  instagramUrl:
+    'https://www.instagram.com/mysteries_in_life_?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==',
+  instagramHandle: '@mysteries_in_life_ on Instagram',
+  twitterUrl: '',
+  twitterHandle: '',
+  goodreadsUrl: '',
+  goodreadsHandle: '',
 };
