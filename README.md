@@ -72,13 +72,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🗝️ Default Admin Studio Credentials
 
-- **URL**: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-- **Email**: `admin@alsas.com`
-- **Password**: `AlsaAuthor2026!`
-
-*(Remember to update the admin password in production.)*
 
 ---
 
