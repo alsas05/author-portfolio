@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: BookPageProps) {
       title: `${book.title} | Books`,
       description: book.description,
       openGraph: {
-        title: `${book.title} by Alsa.S`,
+        title: `${book.title}`,
         description: book.description,
         images: book.coverImage ? [{ url: book.coverImage }] : [],
       },
@@ -133,9 +133,6 @@ export default async function BookDetailPage({ params }: BookPageProps) {
                 <h2 className="font-serif text-white text-2xl sm:text-3xl font-medium">
                   {book.title}
                 </h2>
-                <span className="font-serif italic text-xs text-[#D4D2CF] block mt-1">
-                  by Alsa.S
-                </span>
               </div>
             </div>
           </div>
