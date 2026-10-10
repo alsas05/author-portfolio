@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendContactNotificationEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +37,18 @@ export async function POST(req: NextRequest) {
         message: message.trim(),
       },
     });
+
+    // Dispatch real-time email notification to author's inbox (alsawritesofus@gmail.com)
+    try {
+      await sendContactNotificationEmail({
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        subject: subject.trim(),
+        message: message.trim(),
+      });
+    } catch (emailErr) {
+      console.warn('Failed to dispatch contact notification email to author inbox:', emailErr);
+    }
 
     return NextResponse.json({
       success: true,

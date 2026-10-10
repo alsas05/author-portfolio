@@ -19,17 +19,17 @@ export default function SmtpSettingsForm() {
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
-    user: '',
+    user: 'alsawritesofus@gmail.com',
     pass: '',
     fromName: 'Alsa.S',
-    fromEmail: '',
+    fromEmail: 'alsawritesofus@gmail.com',
   });
 
   const [isConfigured, setIsConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testRecipient, setTestRecipient] = useState('');
+  const [testRecipient, setTestRecipient] = useState('alsawritesofus@gmail.com');
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -45,14 +45,14 @@ export default function SmtpSettingsForm() {
           host: data.config.host || 'smtp.gmail.com',
           port: data.config.port || 465,
           secure: data.config.secure !== undefined ? data.config.secure : true,
-          user: data.config.user || '',
+          user: data.config.user || 'alsawritesofus@gmail.com',
           pass: data.config.pass || '',
           fromName: data.config.fromName || 'Alsa.S',
-          fromEmail: data.config.fromEmail || '',
+          fromEmail: data.config.fromEmail || 'alsawritesofus@gmail.com',
         });
         setIsConfigured(data.config.isConfigured);
-        if (data.config.user && !testRecipient) {
-          setTestRecipient(data.config.user);
+        if (!testRecipient) {
+          setTestRecipient(data.config.user || 'alsawritesofus@gmail.com');
         }
       }
     } catch (err) {
