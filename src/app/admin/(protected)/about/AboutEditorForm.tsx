@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Loader2, Save, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Loader2, Save, CheckCircle2, AlertCircle, RefreshCw, BookOpen } from 'lucide-react';
+import { mergeTimelineWithBooks } from '@/lib/about';
 
 interface PhilosophyPillar {
   title: string;
@@ -13,6 +14,8 @@ interface TimelineMilestone {
   year: string;
   title: string;
   description: string;
+  bookSlug?: string;
+  bookCover?: string;
 }
 
 interface AboutData {
@@ -34,8 +37,27 @@ export default function AboutEditorForm({ initialData }: { initialData: AboutDat
   const router = useRouter();
   const [formData, setFormData] = useState<AboutData>(initialData);
   const [loading, setLoading] = useState(false);
+  const [syncingBooks, setSyncingBooks] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+
+  const handleSyncBooks = async () => {
+    setSyncingBooks(true);
+    try {
+      const res = await fetch('/api/admin/books');
+      const data = await res.json();
+      if (data.books) {
+        setFormData((prev) => ({
+          ...prev,
+          timeline: mergeTimelineWithBooks(prev.timeline, data.books),
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to sync books:', err);
+    } finally {
+      setSyncingBooks(false);
+    }
+  };
 
   // Philosophy handlers
   const updatePhilosophy = (index: number, field: keyof PhilosophyPillar, value: string) => {
@@ -303,17 +325,29 @@ export default function AboutEditorForm({ initialData }: { initialData: AboutDat
               4. The Journey Milestones
             </h3>
             <p className="text-xs text-[#8C7A65]">
-              Add, edit, or reorder significant milestones in the author&apos;s literary career.
+              Add, edit, or reorder significant milestones in the author&apos;s literary career. Books are automatically synced.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={addTimelineMilestone}
-            className="px-3.5 py-1.5 rounded-md bg-[#FAF6EB] text-[#8C6D3B] border border-[#C5A059]/40 hover:bg-[#C5A059] hover:text-white text-xs uppercase tracking-wider font-semibold transition-colors flex items-center space-x-1"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Milestone</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={handleSyncBooks}
+              disabled={syncingBooks}
+              title="Fetch all books from catalog and sync into timeline"
+              className="px-3 py-1.5 rounded-md bg-[#FAF8F5] text-[#8C7A65] border border-[#EAE2D8] hover:text-[#1A1715] hover:border-[#C5A059] text-xs uppercase tracking-wider font-semibold transition-colors flex items-center space-x-1"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncingBooks ? 'animate-spin' : ''}`} />
+              <span>Sync Books</span>
+            </button>
+            <button
+              type="button"
+              onClick={addTimelineMilestone}
+              className="px-3.5 py-1.5 rounded-md bg-[#FAF6EB] text-[#8C6D3B] border border-[#C5A059]/40 hover:bg-[#C5A059] hover:text-white text-xs uppercase tracking-wider font-semibold transition-colors flex items-center space-x-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Milestone</span>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -370,6 +404,13 @@ export default function AboutEditorForm({ initialData }: { initialData: AboutDat
                   className="w-full px-3 py-2 text-xs bg-white border border-[#EAE2D8] rounded focus:outline-none focus:border-[#C5A059]"
                 />
               </div>
+
+              {item.bookSlug && (
+                <div className="flex items-center space-x-2 text-[11px] text-[#8C6D3B] bg-[#FAF6EB] px-2.5 py-1 rounded border border-[#C5A059]/30">
+                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                  <span>Linked Book Catalog: <strong className="font-mono">/books/{item.bookSlug}</strong></span>
+                </div>
+              )}
             </div>
           ))}
         </div>

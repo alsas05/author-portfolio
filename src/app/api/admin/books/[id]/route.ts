@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { syncAboutSettingsWithBooksInDb } from '@/lib/about';
 
 export async function GET(
   req: NextRequest,
@@ -97,6 +98,13 @@ export async function PUT(
       include: { purchaseLinks: true },
     });
 
+    // Auto-sync timeline milestones when a book is updated
+    try {
+      await syncAboutSettingsWithBooksInDb(prisma);
+    } catch (timelineErr) {
+      console.warn('Failed to auto-sync timeline on book update:', timelineErr);
+    }
+
     return NextResponse.json({ success: true, book: updatedBook });
   } catch (error) {
     console.error('Book update error:', error);
@@ -115,9 +123,22 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    const bookToDelete = await prisma.book.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+
     await prisma.book.delete({
       where: { id },
     });
+
+    if (bookToDelete?.slug) {
+      try {
+        await syncAboutSettingsWithBooksInDb(prisma, { deletedSlug: bookToDelete.slug });
+      } catch (timelineErr) {
+        console.warn('Failed to auto-sync timeline on book delete:', timelineErr);
+      }
+    }
 
     return NextResponse.json({ success: true, message: 'Book deleted successfully' });
   } catch (error) {

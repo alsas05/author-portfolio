@@ -1,9 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Feather, Compass } from 'lucide-react';
+import { Feather, Compass, ArrowRight, BookOpen } from 'lucide-react';
 import prisma from '@/lib/prisma';
-import { DEFAULT_ABOUT_DATA } from '@/lib/about';
+import { DEFAULT_ABOUT_DATA, mergeTimelineWithBooks } from '@/lib/about';
 
 export const metadata = {
   title: 'About the Author',
@@ -17,13 +17,22 @@ export default async function AboutPage() {
   let data = DEFAULT_ABOUT_DATA;
 
   try {
-    const setting = await prisma.siteSetting.findUnique({
-      where: { key: 'about_page_data' },
-    });
+    const [setting, books] = await Promise.all([
+      prisma.siteSetting.findUnique({
+        where: { key: 'about_page_data' },
+      }),
+      prisma.book.findMany({
+        where: { status: { not: 'ARCHIVED' } },
+        orderBy: { order: 'asc' },
+      }),
+    ]);
 
     if (setting) {
       data = { ...DEFAULT_ABOUT_DATA, ...JSON.parse(setting.value) };
     }
+
+    // Automatically sync books into the journey timeline
+    data.timeline = mergeTimelineWithBooks(data.timeline || [], books);
   } catch (err) {
     console.error('Failed to load dynamic about data, using fallback defaults:', err);
   }
@@ -129,13 +138,33 @@ export default async function AboutPage() {
                   {item.year}
                 </span>
 
-                <div className="bg-white p-6 rounded-xl border border-[#EAE2D8] hover:border-[#C5A059] transition-all shadow-sm">
-                  <h3 className="font-serif text-xl font-medium text-[#1A1715] mb-2">
-                    {item.title}
-                  </h3>
+                <div className="bg-white p-6 rounded-xl border border-[#EAE2D8] hover:border-[#C5A059] transition-all shadow-sm hover:shadow-md">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="font-serif text-xl font-medium text-[#1A1715]">
+                      {item.title}
+                    </h3>
+                    {item.bookSlug && (
+                      <span className="inline-flex items-center space-x-1 shrink-0 text-[10px] uppercase font-mono font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-[#FAF6EB] text-[#8C6D3B] border border-[#C5A059]/30">
+                        <BookOpen className="w-3 h-3" />
+                        <span>Book</span>
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs sm:text-sm text-[#5A544C] leading-relaxed font-sans font-light">
                     {item.description}
                   </p>
+
+                  {item.bookSlug && (
+                    <div className="mt-4 pt-3 border-t border-[#F5EFEB] flex items-center justify-between">
+                      <Link
+                        href={`/books/${item.bookSlug}`}
+                        className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#8C6D3B] hover:text-[#C5A059] tracking-wider uppercase transition-colors group-hover:underline"
+                      >
+                        <span>Explore Book</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
+import { syncAboutSettingsWithBooksInDb } from '@/lib/about';
 
 export async function GET() {
   try {
@@ -104,6 +105,13 @@ export async function POST(req: NextRequest) {
         purchaseLinks: true,
       },
     });
+
+    // Automatically update "The Journey" timeline with the newly added book
+    try {
+      await syncAboutSettingsWithBooksInDb(prisma);
+    } catch (timelineErr) {
+      console.warn('Failed to auto-sync timeline on book create:', timelineErr);
+    }
 
     return NextResponse.json({ success: true, book });
   } catch (error: any) {
