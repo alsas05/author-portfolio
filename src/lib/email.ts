@@ -393,22 +393,20 @@ export async function sendContactNotificationEmail(data: {
     process.env.CONTACT_NOTIFICATION_EMAIL ||
     DEFAULT_AUTHOR_NOTIFICATION_EMAIL;
 
-  if (!transporter || !config.isConfigured) {
-    console.warn(
-      `[Contact Email Alert] Message from "${name}" <${email}> recorded, but Gmail SMTP is not yet authenticated with an App Password. Message is safely stored in database.`
-    );
-    return false;
-  }
+  let emailSent = false;
 
-  const from = `"${config.fromName}" <${config.fromEmail || config.user || DEFAULT_AUTHOR_NOTIFICATION_EMAIL}>`;
-  const html = renderContactNotificationHtml({
-    name,
-    email,
-    subject,
-    message,
-  });
+  // 1. Primary: Try Gmail SMTP if credentials (App Password) are configured
+  if (transporter && config.isConfigured) {
+    try {
+      const from = `"${config.fromName}" <${config.fromEmail || config.user || DEFAULT_AUTHOR_NOTIFICATION_EMAIL}>`;
+      const html = renderContactNotificationHtml({
+        name,
+        email,
+        subject,
+        message,
+      });
 
-  const plainText = `
+      const plainText = `
 New Reader Message Received on ALSA.S Author Desk
 
 From: ${name} <${email}>
@@ -420,16 +418,92 @@ ${message}
 
 Reply to: ${email}
 Admin Portal: ${process.env.NEXT_PUBLIC_SITE_URL || 'https://author-portfolio-ashy.vercel.app'}/admin/messages
-  `.trim();
+      `.trim();
 
-  const info = await transporter.sendMail({
-    from,
-    to: recipient,
-    replyTo: `"${name}" <${email}>`,
-    subject: `[Author Correspondence] ${subject} — from ${name}`,
-    text: plainText,
-    html,
-  });
+      const info = await transporter.sendMail({
+        from,
+        to: recipient,
+        replyTo: `"${name}" <${email}>`,
+        subject: `[Author Correspondence] ${subject} — from ${name}`,
+        text: plainText,
+        html,
+      });
 
-  return info;
+      console.log('Successfully sent contact notification via Gmail SMTP:', info?.messageId);
+      emailSent = true;
+      return { success: true, method: 'smtp', messageId: info?.messageId };
+    } catch (smtpErr) {
+      console.warn('Gmail SMTP error, falling back to instant forwarding:', smtpErr);
+    }
+  }
+
+  // 2. Secondary: Try Resend API if RESEND_API_KEY is configured
+  if (!emailSent && process.env.RESEND_API_KEY) {
+    try {
+      const html = renderContactNotificationHtml({
+        name,
+        email,
+        subject,
+        message,
+      });
+
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || 'Alsa.S Contact <onboarding@resend.dev>',
+          to: recipient,
+          reply_to: email,
+          subject: `[Author Correspondence] ${subject} — from ${name}`,
+          html,
+        }),
+      });
+
+      if (resendRes.ok) {
+        const resendData = await resendRes.json();
+        console.log('Successfully sent contact notification via Resend:', resendData);
+        emailSent = true;
+        return { success: true, method: 'resend', id: resendData.id };
+      }
+    } catch (resendErr) {
+      console.warn('Resend API error:', resendErr);
+    }
+  }
+
+  // 3. Fallback / Zero-Config: Forward directly to author's Gmail via FormSubmit
+  if (!emailSent) {
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://author-portfolio-ashy.vercel.app';
+      const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${recipient}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Origin: siteUrl,
+          Referer: `${siteUrl}/contact`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          _replyto: email,
+          _subject: `[Author Website] ${subject} — from ${name}`,
+          _template: 'table',
+          _captcha: 'false',
+          subject,
+          message,
+        }),
+      });
+
+      const fsData = await formSubmitRes.json();
+      console.log('FormSubmit notification response:', fsData);
+      return { success: true, method: 'formsubmit', details: fsData };
+    } catch (fsErr) {
+      console.error('Failed to forward contact notification via FormSubmit:', fsErr);
+    }
+  }
+
+  return false;
 }
