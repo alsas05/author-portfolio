@@ -47,7 +47,8 @@ export async function generateMetadata({ params }: BookPageProps) {
   }
 }
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function BookDetailPage({ params }: BookPageProps) {
   const { slug } = await params;

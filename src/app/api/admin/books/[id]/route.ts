@@ -76,7 +76,7 @@ export async function PUT(
         publisher: publisher || null,
         publicationDate: publicationDate || null,
         isbn: isbn || null,
-        pageCount: pageCount ? parseInt(pageCount, 10) : null,
+        pageCount: pageCount && !isNaN(parseInt(pageCount, 10)) ? parseInt(pageCount, 10) : null,
         language: language || 'English',
         format: format || 'Hardcover, Paperback',
         status: status || 'PUBLISHED',

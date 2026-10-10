@@ -9,7 +9,8 @@ export const metadata = {
     'Explore the literary catalog of Alsa.S, including Like the Moon to the Tide, Chronicles of Heart, and forthcoming releases.',
 };
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function BooksPage() {
   let books: any[] = [];

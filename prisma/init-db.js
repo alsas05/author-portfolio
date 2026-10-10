@@ -9,9 +9,12 @@ async function checkAndSeed() {
     const chroniclesBook = await prisma.book.findUnique({
       where: { slug: 'chronicles-of-heart-a-loves-tapestry' },
     });
+    const petrichorBook = await prisma.book.findUnique({
+      where: { slug: 'petrichor' },
+    });
 
     // If no user exists OR if the database has not yet been seeded with the author's real books and blogs
-    if (userCount === 0 || !chroniclesBook) {
+    if (userCount === 0 || !chroniclesBook || !petrichorBook) {
       console.log('🌱 Syncing latest author content and database seed...');
       execSync('node prisma/seed.js', { stdio: 'inherit' });
     } else {

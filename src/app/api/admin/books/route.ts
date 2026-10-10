@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         publisher: publisher || null,
         publicationDate: publicationDate || null,
         isbn: isbn || null,
-        pageCount: pageCount ? parseInt(pageCount, 10) : null,
+        pageCount: pageCount && !isNaN(parseInt(pageCount, 10)) ? parseInt(pageCount, 10) : null,
         language: language || 'English',
         format: format || 'Hardcover, Paperback',
         status: status || 'PUBLISHED',
@@ -106,8 +106,11 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, book });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Book create error:', error);
-    return NextResponse.json({ error: 'Failed to create book' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to create book',
+      message: error?.message || String(error),
+    }, { status: 500 });
   }
 }

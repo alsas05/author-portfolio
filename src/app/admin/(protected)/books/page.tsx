@@ -47,6 +47,7 @@ export default async function AdminBooksPage() {
                           src={book.coverImage}
                           alt={book.title}
                           fill
+                          unoptimized
                           className="object-cover"
                         />
                       </div>

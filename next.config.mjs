@@ -27,6 +27,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'image2url.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media-amazon.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images-na.ssl-images-amazon.com',
+      },
     ],
   },
   serverExternalPackages: ['@prisma/client'],
